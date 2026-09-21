@@ -224,9 +224,14 @@ select.field-input {
   appearance: none;
 }
 
-/* ===== Matrice simplifiee / gamifiee (Q8, Q14, Q17, Q25) =====
-   Chaque ligne = icone (taille proportionnelle au volume si applicable)
-   + libelle + chips larges et cliquables. Meme rendu sur mobile et desktop. */
+/* ===== Chips (question radio simple en pastilles, ex: Q9) ===== */
+.chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ===== Matrice simplifiee / gamifiee (Q8, Q14, Q17, Q25) ===== */
 .volume-matrix {
   display: flex;
   flex-direction: column;
