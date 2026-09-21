@@ -1,0 +1,5 @@
+# Exclure ces fichiers du calcul du langage dominant affiché par GitHub
+# (le site reste fondamentalement une page HTML statique)
+app.js linguist-vendored
+style.css linguist-vendored
+questions.json linguist-vendored
