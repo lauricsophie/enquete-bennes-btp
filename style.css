@@ -215,11 +215,16 @@ body {
   outline: none;
   border-color: var(--color-primary-light);
 }
+.field-input:disabled {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
 select.field-input {
   appearance: none;
 }
 
-/* ===== Matrix ===== */
+/* ===== Matrix (choix unique par ligne) ===== */
 .matrix-table {
   width: 100%;
   border-collapse: collapse;
@@ -245,7 +250,6 @@ select.field-input {
   padding: 10px 6px;
 }
 
-/* Cellule entièrement cliquable (pas seulement le petit rond) */
 .matrix-cell {
   display: flex;
   align-items: center;
@@ -344,6 +348,38 @@ select.field-input {
   .matrix-desktop { display: none; }
   .matrix-mobile { display: block; }
 }
+
+/* ===== Matrix number (Q10 : saisie libre par type de véhicule) ===== */
+.matrix-number {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.matrix-number-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+.matrix-number-row__label {
+  font-weight: 600;
+  color: var(--color-text);
+  flex: 1;
+}
+.matrix-number-row__input {
+  width: 120px;
+  min-height: 40px;
+  text-align: right;
+  flex-shrink: 0;
+}
+@media (max-width: 480px) {
+  .matrix-number-row { flex-direction: row; flex-wrap: wrap; }
+  .matrix-number-row__input { width: 100px; }
+}
+.na-checkbox { }
 
 /* ===== Error messages ===== */
 .field-error {
