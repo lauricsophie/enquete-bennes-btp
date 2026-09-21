@@ -235,15 +235,65 @@ select.field-input {
 .matrix-table th:first-child { text-align: left; }
 .matrix-table td {
   border-bottom: 1px solid var(--color-border);
-  padding: 10px 6px;
+  padding: 4px;
   text-align: center;
 }
 .matrix-table td:first-child {
   text-align: left;
   font-weight: 600;
   color: var(--color-text);
+  padding: 10px 6px;
 }
-.matrix-table input[type="radio"] { width: 18px; height: 18px; }
+
+/* Cellule entièrement cliquable (pas seulement le petit rond) */
+.matrix-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+.matrix-cell:hover {
+  background: var(--color-eco-light);
+}
+.matrix-cell.selected {
+  background: var(--color-eco-light);
+}
+.matrix-cell input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  cursor: pointer;
+}
+.matrix-cell__dot {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  pointer-events: none;
+  background: var(--color-surface);
+}
+.matrix-cell.selected .matrix-cell__dot {
+  border-color: var(--color-accent-btp);
+}
+.matrix-cell.selected .matrix-cell__dot::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-eco);
+  transform: translate(-50%, -50%);
+}
 
 .matrix-mobile { display: none; }
 .matrix-row-mobile {
@@ -269,16 +319,26 @@ select.field-input {
   padding: 8px 12px;
   font-size: 0.85rem;
   cursor: pointer;
-  min-height: 40px;
+  min-height: 44px;
   display: flex;
   align-items: center;
+  position: relative;
 }
 .matrix-chip.selected {
   border-color: var(--color-accent-btp);
   background: var(--color-eco-light);
   font-weight: 700;
 }
-.matrix-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.matrix-chip input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+  margin: 0;
+}
 
 @media (max-width: 600px) {
   .matrix-desktop { display: none; }
