@@ -346,44 +346,49 @@ function renderText(q, type) {
   return `<input class="field-input" id="${current}" type="${inputType}"${inputmode} value="${escapeHtml(val)}" placeholder="${type === "email" ? "nom@entreprise.fr" : ""}">`;
 }
 
-function renderMatrix(q) {
-  // Desktop : chaque cellule est un label cliquable sur toute sa surface (pas seulement le rond radio)
-  let desktop = `<table class="matrix-table matrix-desktop"><thead><tr><th></th>`;
-  q.options.forEach(opt => desktop += `<th>${escapeHtml(opt)}</th>`);
-  desktop += `</tr></thead><tbody>`;
-  q.rows.forEach((rowLabel, i) => {
-    const col = q.columns[i];
-    const val = state.answers[col];
-    desktop += `<tr><td>${escapeHtml(rowLabel)}</td>`;
-    q.options.forEach(opt => {
-      const isChecked = val === opt;
-      desktop += `<td>
-        <label class="matrix-cell ${isChecked ? "selected" : ""}">
-          <input type="radio" name="${col}" value="${escapeHtml(opt)}" ${isChecked ? "checked" : ""}>
-          <span class="matrix-cell__dot"></span>
-        </label>
-      </td>`;
-    });
-    desktop += `</tr>`;
-  });
-  desktop += `</tbody></table>`;
+// ==================== MATRICE SIMPLIFIEE / GAMIFIEE ====================
+// Extrait un volume en m3 depuis un libelle de ligne (ex: "8 m³" -> 8).
+// "Plus de X m³" est majore pour apparaitre visuellement plus grand.
+function extractVolume(label) {
+  const m = label.match(/(\d+)\s*m/);
+  if (!m) return null;
+  let v = parseInt(m[1], 10);
+  if (/plus de/i.test(label)) v += 10;
+  return v;
+}
 
-  // Mobile : blocs empilés avec chips larges
-  let mobile = `<div class="matrix-mobile">`;
+// Taille d'icone (px) proportionnelle au volume, entre 18px et 42px.
+function iconSizeForVolume(v) {
+  if (v === null) return 22;
+  const vmin = 3, vmax = 40;
+  const pxmin = 18, pxmax = 42;
+  const c = Math.max(vmin, Math.min(vmax, v));
+  return Math.round(pxmin + (c - vmin) / (vmax - vmin) * (pxmax - pxmin));
+}
+
+function renderMatrix(q) {
+  let html = `<div class="volume-matrix">`;
   q.rows.forEach((rowLabel, i) => {
     const col = q.columns[i];
     const val = state.answers[col];
-    mobile += `<div class="matrix-row-mobile"><span class="matrix-row-mobile__label">${escapeHtml(rowLabel)}</span><div class="matrix-row-mobile__options">`;
+    const volume = extractVolume(rowLabel);
+    const iconPx = iconSizeForVolume(volume);
+    html += `
+      <div class="volume-row">
+        <div class="volume-row__head">
+          <span class="volume-row__icon" style="width:${iconPx}px;height:${iconPx}px;">${ICONS.benne}</span>
+          <span class="volume-row__label">${escapeHtml(rowLabel)}</span>
+        </div>
+        <div class="volume-row__chips">`;
     q.options.forEach(opt => {
       const sel = val === opt ? "selected" : "";
-      mobile += `<label class="matrix-chip ${sel}" data-col="${col}" data-value="${escapeHtml(opt)}">
-        <input type="radio" name="${col}" value="${escapeHtml(opt)}" ${val === opt ? "checked" : ""}>${escapeHtml(opt)}</label>`;
+      html += `<label class="volume-chip ${sel}" data-col="${col}" data-value="${escapeHtml(opt)}">
+            <input type="radio" name="${col}" value="${escapeHtml(opt)}" ${val === opt ? "checked" : ""}>${escapeHtml(opt)}</label>`;
     });
-    mobile += `</div></div>`;
+    html += `</div></div>`;
   });
-  mobile += `</div>`;
-
-  return desktop + mobile;
+  html += `</div>`;
+  return html;
 }
 
 function renderMatrixNumber(q) {
@@ -456,7 +461,7 @@ function attachFieldHandlers(q) {
   }
 
   if (q.type === "matrix_single") {
-    document.querySelectorAll(`.matrix-table input[type="radio"], .matrix-chip input[type="radio"]`).forEach(input => {
+    document.querySelectorAll(`.volume-chip input[type="radio"]`).forEach(input => {
       input.addEventListener("change", () => {
         state.answers[input.name] = input.value;
         renderQuestion(q);
