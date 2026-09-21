@@ -224,129 +224,78 @@ select.field-input {
   appearance: none;
 }
 
-/* ===== Matrix (choix unique par ligne) ===== */
-.matrix-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-.matrix-table th {
-  background: var(--color-eco-light);
-  color: var(--color-primary);
-  font-weight: 700;
-  padding: 8px 6px;
-  text-align: center;
-}
-.matrix-table th:first-child { text-align: left; }
-.matrix-table td {
-  border-bottom: 1px solid var(--color-border);
-  padding: 4px;
-  text-align: center;
-}
-.matrix-table td:first-child {
-  text-align: left;
-  font-weight: 600;
-  color: var(--color-text);
-  padding: 10px 6px;
-}
-
-.matrix-cell {
+/* ===== Matrice simplifiee / gamifiee (Q8, Q14, Q17, Q25) =====
+   Chaque ligne = icone (taille proportionnelle au volume si applicable)
+   + libelle + chips larges et cliquables. Meme rendu sur mobile et desktop. */
+.volume-matrix {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 44px;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: background 0.15s ease;
+  flex-direction: column;
+  gap: 16px;
 }
-.matrix-cell:hover {
-  background: var(--color-eco-light);
-}
-.matrix-cell.selected {
-  background: var(--color-eco-light);
-}
-.matrix-cell input[type="radio"] {
-  position: absolute;
-  opacity: 0;
-  width: 44px;
-  height: 44px;
-  margin: 0;
-  cursor: pointer;
-}
-.matrix-cell__dot {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--color-border);
-  border-radius: 50%;
-  display: inline-block;
-  position: relative;
-  pointer-events: none;
-  background: var(--color-surface);
-}
-.matrix-cell.selected .matrix-cell__dot {
-  border-color: var(--color-accent-btp);
-}
-.matrix-cell.selected .matrix-cell__dot::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--color-eco);
-  transform: translate(-50%, -50%);
-}
-
-.matrix-mobile { display: none; }
-.matrix-row-mobile {
+.volume-row {
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 12px;
-  margin-bottom: 12px;
+  padding: 14px;
 }
-.matrix-row-mobile__label {
+.volume-row__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.volume-row__icon {
+  color: var(--color-primary-light);
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.volume-row__icon svg { width: 100%; height: 100%; }
+.volume-row__label {
   font-weight: 700;
   color: var(--color-primary);
-  margin-bottom: 8px;
-  display: block;
+  font-size: 1.05rem;
 }
-.matrix-row-mobile__options {
+.volume-row__chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
-.matrix-chip {
+.volume-chip {
+  position: relative;
   border: 2px solid var(--color-border);
   border-radius: 999px;
-  padding: 8px 12px;
-  font-size: 0.85rem;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
   min-height: 44px;
+  min-width: 44px;
   display: flex;
   align-items: center;
-  position: relative;
+  justify-content: center;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+  background: var(--color-surface);
+  color: var(--color-text);
 }
-.matrix-chip.selected {
+.volume-chip:hover {
+  border-color: var(--color-primary-light);
+}
+.volume-chip.selected {
   border-color: var(--color-accent-btp);
-  background: var(--color-eco-light);
-  font-weight: 700;
+  background: var(--color-accent-btp);
+  color: var(--color-text);
+  transform: scale(1.05);
 }
-.matrix-chip input {
+.volume-chip input {
   position: absolute;
   opacity: 0;
   width: 100%;
   height: 100%;
   top: 0;
   left: 0;
-  cursor: pointer;
   margin: 0;
-}
-
-@media (max-width: 600px) {
-  .matrix-desktop { display: none; }
-  .matrix-mobile { display: block; }
+  cursor: pointer;
 }
 
 /* ===== Matrix number (Q10 : saisie libre par type de véhicule) ===== */
@@ -379,7 +328,6 @@ select.field-input {
   .matrix-number-row { flex-direction: row; flex-wrap: wrap; }
   .matrix-number-row__input { width: 100px; }
 }
-.na-checkbox { }
 
 /* ===== Error messages ===== */
 .field-error {
