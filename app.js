@@ -243,7 +243,8 @@ function renderQuestion(q) {
   const sectionTitle = (QUESTIONS.sections.find(s => s.id === q.section) || {}).title || "";
 
   let fieldHtml = "";
-  if (q.type === "radio") fieldHtml = renderRadio(q);
+  if (q.type === "radio" && q.display === "chips") fieldHtml = renderRadioChips(q);
+  else if (q.type === "radio") fieldHtml = renderRadio(q);
   else if (q.type === "checkbox") fieldHtml = renderCheckbox(q);
   else if (q.type === "dropdown") fieldHtml = renderDropdown(q);
   else if (q.type === "text") fieldHtml = renderText(q, "text");
@@ -298,6 +299,21 @@ function renderRadio(q) {
   return html;
 }
 
+// Variante "chips" pour une question radio simple (meme logique visuelle que
+// les matrices Q8/Q14 : pastilles horizontales, orange quand selectionnees).
+function renderRadioChips(q) {
+  const current = q.columns[0];
+  const val = state.answers[current];
+  let html = `<div class="chips-wrap">`;
+  q.options.forEach(opt => {
+    const sel = val === opt ? "selected" : "";
+    html += `<label class="volume-chip ${sel}" data-value="${escapeHtml(opt)}">
+      <input type="radio" name="${current}" value="${escapeHtml(opt)}" ${val === opt ? "checked" : ""}>${escapeHtml(opt)}</label>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
 function renderCheckbox(q) {
   const current = q.columns[0];
   const val = Array.isArray(state.answers[current]) ? state.answers[current] : [];
@@ -347,10 +363,6 @@ function renderText(q, type) {
 }
 
 // ==================== MATRICE SIMPLIFIEE / GAMIFIEE ====================
-// Extrait un volume en m3 depuis un libelle de ligne (ex: "8 m³" -> 8).
-// "Plus de X m³" est majore pour apparaitre visuellement plus grand.
-// Retourne null si la ligne ne represente pas un volume (ex: type de vehicule,
-// oui/non, frequence) : dans ce cas, aucune icone n'est affichee.
 function extractVolume(label) {
   const m = label.match(/(\d+)\s*m\u00b3/);
   if (!m) return null;
@@ -359,7 +371,6 @@ function extractVolume(label) {
   return v;
 }
 
-// Taille d'icone (px) proportionnelle au volume, entre 18px et 42px.
 function iconSizeForVolume(v) {
   const vmin = 3, vmax = 40;
   const pxmin = 18, pxmax = 42;
@@ -425,7 +436,7 @@ function attachFieldHandlers(q) {
   const current = q.columns[0];
 
   if (q.type === "radio") {
-    document.querySelectorAll(`.option-block input[type="radio"]`).forEach(input => {
+    document.querySelectorAll(`.option-block input[type="radio"], .chips-wrap .volume-chip input[type="radio"]`).forEach(input => {
       input.addEventListener("change", () => {
         state.answers[current] = input.value;
         if (q.allow_other) {
@@ -464,7 +475,7 @@ function attachFieldHandlers(q) {
   }
 
   if (q.type === "matrix_single") {
-    document.querySelectorAll(`.volume-chip input[type="radio"]`).forEach(input => {
+    document.querySelectorAll(`.volume-row .volume-chip input[type="radio"]`).forEach(input => {
       input.addEventListener("change", () => {
         state.answers[input.name] = input.value;
         renderQuestion(q);
