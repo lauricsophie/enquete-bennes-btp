@@ -168,7 +168,7 @@ function validateQuestion(q) {
       return "Le format de l'adresse e-mail est invalide.";
     }
     if (q.type === "number" && !/^\d+$/.test(String(val).trim())) {
-      return "Merci de saisir uniquement des chiffres, sans espace ni symbole.";
+      return "Merci de saisir uniquement des chiffres, sans espace ni symbole (pas de symbole \u20ac, pas de lettres).";
     }
   }
   return null;
@@ -349,8 +349,10 @@ function renderText(q, type) {
 // ==================== MATRICE SIMPLIFIEE / GAMIFIEE ====================
 // Extrait un volume en m3 depuis un libelle de ligne (ex: "8 m³" -> 8).
 // "Plus de X m³" est majore pour apparaitre visuellement plus grand.
+// Retourne null si la ligne ne represente pas un volume (ex: type de vehicule,
+// oui/non, frequence) : dans ce cas, aucune icone n'est affichee.
 function extractVolume(label) {
-  const m = label.match(/(\d+)\s*m/);
+  const m = label.match(/(\d+)\s*m\u00b3/);
   if (!m) return null;
   let v = parseInt(m[1], 10);
   if (/plus de/i.test(label)) v += 10;
@@ -359,7 +361,6 @@ function extractVolume(label) {
 
 // Taille d'icone (px) proportionnelle au volume, entre 18px et 42px.
 function iconSizeForVolume(v) {
-  if (v === null) return 22;
   const vmin = 3, vmax = 40;
   const pxmin = 18, pxmax = 42;
   const c = Math.max(vmin, Math.min(vmax, v));
@@ -372,11 +373,13 @@ function renderMatrix(q) {
     const col = q.columns[i];
     const val = state.answers[col];
     const volume = extractVolume(rowLabel);
-    const iconPx = iconSizeForVolume(volume);
+    const iconHtml = volume !== null
+      ? `<span class="volume-row__icon" style="width:${iconSizeForVolume(volume)}px;height:${iconSizeForVolume(volume)}px;">${ICONS.benne}</span>`
+      : "";
     html += `
       <div class="volume-row">
         <div class="volume-row__head">
-          <span class="volume-row__icon" style="width:${iconPx}px;height:${iconPx}px;">${ICONS.benne}</span>
+          ${iconHtml}
           <span class="volume-row__label">${escapeHtml(rowLabel)}</span>
         </div>
         <div class="volume-row__chips">`;
