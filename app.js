@@ -235,11 +235,17 @@ function renderQuestion(q) {
   else if (q.type === "number") fieldHtml = renderText(q, "number");
   else if (q.type === "matrix_single") fieldHtml = renderMatrix(q);
 
+  // Note d'aide : ajout automatique de "Plusieurs réponses possibles." pour les cases à cocher
+  let helperText = q.helper || "";
+  if (q.type === "checkbox") {
+    helperText = helperText ? helperText + " Plusieurs réponses possibles." : "Plusieurs réponses possibles.";
+  }
+
   root.innerHTML = `
     <div class="card">
       <div class="section-tag">${icon} ${escapeHtml(sectionTitle)}</div>
       <p class="question-label">${escapeHtml(q.label)}${q.required ? '<span class="question-required">*</span>' : ''}</p>
-      ${q.helper ? `<p class="question-helper">${escapeHtml(q.helper)}</p>` : ""}
+      ${helperText ? `<p class="question-helper">${escapeHtml(helperText)}</p>` : ""}
       ${fieldHtml}
       <div id="field-error-zone"></div>
     </div>
@@ -324,6 +330,7 @@ function renderText(q, type) {
 }
 
 function renderMatrix(q) {
+  // Desktop : chaque cellule est un label cliquable sur toute sa surface (pas seulement le rond radio)
   let desktop = `<table class="matrix-table matrix-desktop"><thead><tr><th></th>`;
   q.options.forEach(opt => desktop += `<th>${escapeHtml(opt)}</th>`);
   desktop += `</tr></thead><tbody>`;
@@ -332,12 +339,19 @@ function renderMatrix(q) {
     const val = state.answers[col];
     desktop += `<tr><td>${escapeHtml(rowLabel)}</td>`;
     q.options.forEach(opt => {
-      desktop += `<td><input type="radio" name="${col}" value="${escapeHtml(opt)}" ${val === opt ? "checked" : ""}></td>`;
+      const isChecked = val === opt;
+      desktop += `<td>
+        <label class="matrix-cell ${isChecked ? "selected" : ""}">
+          <input type="radio" name="${col}" value="${escapeHtml(opt)}" ${isChecked ? "checked" : ""}>
+          <span class="matrix-cell__dot"></span>
+        </label>
+      </td>`;
     });
     desktop += `</tr>`;
   });
   desktop += `</tbody></table>`;
 
+  // Mobile : blocs empilés avec chips larges
   let mobile = `<div class="matrix-mobile">`;
   q.rows.forEach((rowLabel, i) => {
     const col = q.columns[i];
@@ -364,6 +378,10 @@ function attachFieldHandlers(q) {
     document.querySelectorAll(`.option-block input[type="radio"]`).forEach(input => {
       input.addEventListener("change", () => {
         state.answers[current] = input.value;
+        if (q.allow_other) {
+          const otherInput = document.getElementById(current + "_autre");
+          if (otherInput) state.answers[current + "_autre"] = otherInput.value;
+        }
         renderQuestion(q);
       });
     });
