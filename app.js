@@ -133,6 +133,22 @@ function validateQuestion(q) {
     return null;
   }
 
+  if (q.type === "matrix_number") {
+    const naChecked = q.allow_na && state.answers[q.na_column] === true;
+    if (naChecked) return null;
+    if (q.required) {
+      const hasAtLeastOne = q.columns.some(col => state.answers[col] !== undefined && String(state.answers[col]).trim() !== "");
+      if (!hasAtLeastOne) return "Merci de renseigner au moins une valeur, ou de cocher \"Ne souhaite pas répondre\".";
+    }
+    for (const col of q.columns) {
+      const v = state.answers[col];
+      if (v !== undefined && String(v).trim() !== "" && !/^\d+$/.test(String(v).trim())) {
+        return "Merci de saisir uniquement des chiffres, sans espace ni symbole.";
+      }
+    }
+    return null;
+  }
+
   const col = q.columns[0];
   const val = state.answers[col];
 
@@ -234,6 +250,7 @@ function renderQuestion(q) {
   else if (q.type === "email") fieldHtml = renderText(q, "email");
   else if (q.type === "number") fieldHtml = renderText(q, "number");
   else if (q.type === "matrix_single") fieldHtml = renderMatrix(q);
+  else if (q.type === "matrix_number") fieldHtml = renderMatrixNumber(q);
 
   // Note d'aide : ajout automatique de "Plusieurs réponses possibles." pour les cases à cocher
   let helperText = q.helper || "";
@@ -369,6 +386,31 @@ function renderMatrix(q) {
   return desktop + mobile;
 }
 
+function renderMatrixNumber(q) {
+  const naChecked = q.allow_na && state.answers[q.na_column] === true;
+  let html = `<div class="matrix-number">`;
+  q.rows.forEach((rowLabel, i) => {
+    const col = q.columns[i];
+    const val = naChecked ? "" : (state.answers[col] || "");
+    html += `
+      <div class="matrix-number-row">
+        <label class="matrix-number-row__label" for="${col}">${escapeHtml(rowLabel)}</label>
+        <input class="field-input matrix-number-row__input" id="${col}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="km" value="${escapeHtml(val)}" ${naChecked ? "disabled" : ""}>
+      </div>`;
+  });
+  html += `</div>`;
+
+  if (q.allow_na) {
+    html += `
+      <label class="option-block na-checkbox ${naChecked ? "selected" : ""}" style="margin-top:12px;">
+        <input type="checkbox" id="${q.na_column}" ${naChecked ? "checked" : ""}>
+        <span class="option-block__label">${escapeHtml(q.na_label || "Ne souhaite pas répondre")}</span>
+        <span class="option-block__check">${ICONS.check}</span>
+      </label>`;
+  }
+  return html;
+}
+
 // ==================== HANDLERS ====================
 function attachFieldHandlers(q) {
   clearFieldError();
@@ -421,6 +463,23 @@ function attachFieldHandlers(q) {
       });
     });
   }
+
+  if (q.type === "matrix_number") {
+    q.columns.forEach(col => {
+      const input = document.getElementById(col);
+      if (input) input.addEventListener("input", () => { state.answers[col] = input.value; });
+    });
+    if (q.allow_na) {
+      const naInput = document.getElementById(q.na_column);
+      if (naInput) naInput.addEventListener("change", () => {
+        state.answers[q.na_column] = naInput.checked;
+        if (naInput.checked) {
+          q.columns.forEach(col => { state.answers[col] = ""; });
+        }
+        renderQuestion(q);
+      });
+    }
+  }
 }
 
 // ==================== PROGRESS ====================
@@ -452,6 +511,12 @@ function renderRecap() {
     let display = "";
     if (q.type === "matrix_single") {
       display = q.rows.map((rowLabel, i) => `${rowLabel} : ${state.answers[q.columns[i]] || "—"}`).join("<br>");
+    } else if (q.type === "matrix_number") {
+      if (q.allow_na && state.answers[q.na_column] === true) {
+        display = q.na_label || "Ne souhaite pas répondre";
+      } else {
+        display = q.rows.map((rowLabel, i) => `${rowLabel} : ${state.answers[q.columns[i]] || "—"} km`).join("<br>");
+      }
     } else {
       const col = q.columns[0];
       const val = state.answers[col];
@@ -528,6 +593,12 @@ function buildPayload() {
         }
         delete payload[otherKey];
       }
+    }
+    if (q.type === "matrix_number" && q.allow_na && payload[q.na_column] === true) {
+      q.columns.forEach(col => { payload[col] = "Ne souhaite pas répondre"; });
+      delete payload[q.na_column];
+    } else if (q.type === "matrix_number" && q.allow_na) {
+      delete payload[q.na_column];
     }
   });
   payload.submission_id = generateUUID();
