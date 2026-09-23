@@ -48,6 +48,16 @@ body {
   font-weight: 800;
   font-size: 1rem;
   letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.app-header__logo {
+  height: 32px;
+  width: auto;
+  border-radius: 4px;
+  background: #fff;
+  padding: 2px;
 }
 .app-header__title {
   font-size: 0.85rem;
@@ -61,6 +71,7 @@ body {
     padding: 16px 32px;
   }
   .app-header__title { font-size: 0.95rem; }
+  .app-header__logo { height: 40px; }
 }
 
 /* ===== Progress bar + jalons ===== */
