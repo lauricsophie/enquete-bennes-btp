@@ -184,13 +184,25 @@ function clearFieldError() {
   if (el) el.innerHTML = "";
 }
 
-// ==================== HELPER INTRO (paragraphes) ====================
-// meta.intro peut etre une chaine (retrocompatibilite) ou un tableau de
-// paragraphes courts, pour une intro plus lisible et aeree.
+// ==================== HELPER INTRO (paragraphes riches) ====================
+// meta.intro accepte :
+// - une chaine simple (retrocompatibilite)
+// - un tableau de blocs { type: "paragraph"|"list", text|items }
+//   Le texte d'un paragraphe peut contenir **mots en gras**.
+function formatInlineBold(text) {
+  return escapeHtml(text).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
 function renderIntroParagraphs() {
   const intro = QUESTIONS.meta.intro;
-  const paragraphs = Array.isArray(intro) ? intro : [intro];
-  return paragraphs.map(p => `<p class="intro-text">${escapeHtml(p)}</p>`).join("");
+  const blocks = Array.isArray(intro) ? intro : [{ type: "paragraph", text: intro }];
+  return blocks.map(b => {
+    if (typeof b === "string") return `<p class="intro-text">${formatInlineBold(b)}</p>`;
+    if (b.type === "list") {
+      return `<ul class="intro-list">${b.items.map(i => `<li>${escapeHtml(i)}</li>`).join("")}</ul>`;
+    }
+    return `<p class="intro-text">${formatInlineBold(b.text)}</p>`;
+  }).join("");
 }
 
 // ==================== RENDER : INTRO ====================
@@ -508,13 +520,39 @@ function attachFieldHandlers(q) {
   }
 }
 
-// ==================== PROGRESS ====================
+// ==================== PROGRESS (jalons par section, pas de compteur brut) ====================
+function milestoneMessage(pct) {
+  if (pct < 25) return "C'est parti !";
+  if (pct < 50) return "Vous avancez bien !";
+  if (pct < 75) return "Plus qu'une petite ligne droite !";
+  if (pct < 100) return "Presque terminé !";
+  return "Dernière question !";
+}
+
+function renderMilestoneDots(sectionIndex, totalSections) {
+  const container = document.getElementById("milestone-dots");
+  if (!container) return;
+  let html = "";
+  for (let i = 0; i < totalSections; i++) {
+    const cls = i < sectionIndex ? "done" : (i === sectionIndex ? "active" : "");
+    html += `<span class="milestone-dot ${cls}"></span>`;
+  }
+  container.innerHTML = html;
+}
+
 function updateProgress(q) {
   const visible = getVisibleQuestions();
   const idx = visible.findIndex(x => x.id === q.id);
   const pct = Math.round(((idx + 1) / visible.length) * 100);
   document.getElementById("progress-bar").style.width = pct + "%";
-  document.getElementById("progress-label").textContent = `Question ${idx + 1} sur ${visible.length}`;
+
+  const sections = QUESTIONS.sections;
+  const sectionIndex = Math.max(0, sections.findIndex(s => s.id === q.section));
+  const sectionTitle = sections[sectionIndex] ? sections[sectionIndex].title : "";
+  renderMilestoneDots(sectionIndex, sections.length);
+
+  document.getElementById("progress-label").textContent =
+    `Étape ${sectionIndex + 1}/${sections.length} · ${sectionTitle} — ${milestoneMessage(pct)}`;
 }
 function toggleProgress(show) { document.getElementById("progress-wrap").hidden = !show; }
 function toggleNav(show) {
