@@ -521,7 +521,7 @@ function attachFieldHandlers(q) {
 // plus affiche dans l'indicateur d'etape : seul le numero d'etape et un message
 // d'encouragement sobre, adapte a un public d'entreprises, sont affiches.
 function milestoneMessage(pct) {
-  if (pct < 25) return "Merci pour votre participation.";
+  if (pct < 25) return "Vos réponses contribuent à mieux connaître la filière.";
   if (pct < 50) return "Vous progressez efficacement.";
   if (pct < 75) return "Encore quelques questions.";
   if (pct < 100) return "Plus que quelques instants.";
