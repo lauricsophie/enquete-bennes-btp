@@ -436,6 +436,12 @@ select.field-input {
   gap: 12px;
   z-index: 10;
 }
+/* IMPORTANT : l'attribut HTML "hidden" doit rester prioritaire sur
+   "display: flex" ci-dessus, sinon le bouton Suivant reste visible
+   sur l'ecran d'accueil (bug observe). */
+.nav-buttons[hidden] {
+  display: none !important;
+}
 .btn {
   flex: 1;
   min-height: 48px;
