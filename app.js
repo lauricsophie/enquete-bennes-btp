@@ -184,6 +184,15 @@ function clearFieldError() {
   if (el) el.innerHTML = "";
 }
 
+// ==================== HELPER INTRO (paragraphes) ====================
+// meta.intro peut etre une chaine (retrocompatibilite) ou un tableau de
+// paragraphes courts, pour une intro plus lisible et aeree.
+function renderIntroParagraphs() {
+  const intro = QUESTIONS.meta.intro;
+  const paragraphs = Array.isArray(intro) ? intro : [intro];
+  return paragraphs.map(p => `<p class="intro-text">${escapeHtml(p)}</p>`).join("");
+}
+
 // ==================== RENDER : INTRO ====================
 function renderIntro() {
   state.screen = "intro";
@@ -194,7 +203,7 @@ function renderIntro() {
     <div class="card">
       <span class="meta-duration">Durée estimée : ${escapeHtml(QUESTIONS.meta.estimated_duration_min)} min</span>
       <h1>${escapeHtml(QUESTIONS.meta.title)}</h1>
-      <p class="intro-text">${escapeHtml(QUESTIONS.meta.intro)}</p>
+      ${renderIntroParagraphs()}
       <button class="btn btn--primary" id="btn-start" style="margin-top:16px;">Commencer</button>
     </div>
   `;
@@ -216,7 +225,7 @@ function renderIntroWithResume(saved) {
         <span>Une réponse en cours a été détectée sur cet appareil.</span>
         <button id="btn-resume">Reprendre où j'en étais</button>
       </div>
-      <p class="intro-text">${escapeHtml(QUESTIONS.meta.intro)}</p>
+      ${renderIntroParagraphs()}
       <button class="btn btn--primary" id="btn-start" style="margin-top:16px;">Recommencer à zéro</button>
     </div>
   `;
@@ -299,8 +308,6 @@ function renderRadio(q) {
   return html;
 }
 
-// Variante "chips" pour une question radio simple (meme logique visuelle que
-// les matrices Q8/Q14 : pastilles horizontales, orange quand selectionnees).
 function renderRadioChips(q) {
   const current = q.columns[0];
   const val = state.answers[current];
