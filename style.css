@@ -1,10 +1,13 @@
 :root {
-  --color-primary: #0B3D5C;
-  --color-primary-light: #145C8C;
-  --color-accent-btp: #F2A900;
-  --color-accent-btp-dark: #C4870A;
-  --color-eco: #2E7D32;
-  --color-eco-light: #E8F5E9;
+  --color-primary: #22214C;
+  --color-primary-light: #6F6E8A;
+  --color-accent-btp: #B7CF39;
+  --color-accent-btp-dark: #96A92E;
+  --color-eco: #186D3C;
+  --color-eco-light: #ECF3EF;
+  --color-secondary: #529E5F;
+  --color-sky: #88B7C6;
+  --color-sky-light: #C5E3EB;
   --color-bg: #F5F6F5;
   --color-surface: #FFFFFF;
   --color-text: #1A1A1A;
@@ -12,7 +15,7 @@
   --color-error: #C62828;
   --color-border: #D8DBD6;
   --radius: 12px;
-  --shadow: 0 2px 10px rgba(11, 61, 92, 0.08);
+  --shadow: 0 2px 10px rgba(34, 33, 76, 0.10);
 }
 
 * { box-sizing: border-box; }
@@ -195,7 +198,7 @@ body {
   gap: 6px;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--color-primary-light);
+  color: var(--color-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-bottom: 8px;
@@ -253,7 +256,7 @@ body {
   background: var(--color-surface);
 }
 .option-block:hover {
-  border-color: var(--color-primary-light);
+  border-color: var(--color-sky);
 }
 .option-block.selected {
   border-color: var(--color-accent-btp);
@@ -291,7 +294,7 @@ body {
 }
 .field-input:focus {
   outline: none;
-  border-color: var(--color-primary-light);
+  border-color: var(--color-sky);
 }
 .field-input:disabled {
   background: var(--color-bg);
@@ -327,7 +330,7 @@ select.field-input {
   margin-bottom: 10px;
 }
 .volume-row__icon {
-  color: var(--color-primary-light);
+  color: var(--color-secondary);
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -362,12 +365,12 @@ select.field-input {
   color: var(--color-text);
 }
 .volume-chip:hover {
-  border-color: var(--color-primary-light);
+  border-color: var(--color-sky);
 }
 .volume-chip.selected {
   border-color: var(--color-accent-btp);
   background: var(--color-accent-btp);
-  color: var(--color-text);
+  color: var(--color-primary);
   transform: scale(1.05);
 }
 .volume-chip input {
@@ -436,9 +439,6 @@ select.field-input {
   gap: 12px;
   z-index: 10;
 }
-/* IMPORTANT : l'attribut HTML "hidden" doit rester prioritaire sur
-   "display: flex" ci-dessus, sinon le bouton Suivant reste visible
-   sur l'ecran d'accueil (bug observe). */
 .nav-buttons[hidden] {
   display: none !important;
 }
@@ -454,7 +454,7 @@ select.field-input {
 }
 .btn--primary {
   background: var(--color-accent-btp);
-  color: var(--color-text);
+  color: var(--color-primary);
 }
 .btn--primary:hover { background: var(--color-accent-btp-dark); }
 .btn--primary:disabled {
@@ -489,7 +489,7 @@ select.field-input {
   margin-top: 4px;
 }
 .recap-edit-link {
-  color: var(--color-primary-light);
+  color: var(--color-secondary);
   font-size: 0.8rem;
   cursor: pointer;
   text-decoration: underline;
