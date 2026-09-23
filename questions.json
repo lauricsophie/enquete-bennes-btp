@@ -2,9 +2,10 @@
   "meta": {
     "title": "Enquête courte — Location de bennes et transport de déchets BTP en Guyane",
     "intro": [
-      "La Cellule Économique Régionale de la Construction de Guyane réalise une enquête courte sur les prestations de bennes à déchets destinées aux chantiers du BTP : location, transport, rotation et évacuation des déchets.",
-      "Les résultats seront exploités uniquement sous forme agrégée. Aucune donnée ne sera publiée par entreprise, client, chantier ou site.",
-      "Merci de répondre au regard de votre activité habituelle au cours des 12 derniers mois. Ne renseignez ni client identifiable, ni prix négocié, ni contrat particulier."
+      { "type": "paragraph", "text": "La Cellule Économique Régionale de la Construction de Guyane réalise une enquête courte sur les prestations de bennes à déchets destinées aux chantiers du BTP :" },
+      { "type": "list", "items": ["Location", "Transport", "Rotation", "Évacuation des déchets"] },
+      { "type": "paragraph", "text": "Les résultats seront exploités uniquement sous forme agrégée. Aucune donnée ne sera publiée par entreprise, client, chantier ou site." },
+      { "type": "paragraph", "text": "Merci de répondre au regard de votre activité habituelle au **cours des 12 derniers mois**." }
     ],
     "estimated_duration_min": "5-8",
     "sheet_name": "Reponses"
