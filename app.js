@@ -185,10 +185,6 @@ function clearFieldError() {
 }
 
 // ==================== HELPER INTRO (paragraphes riches) ====================
-// meta.intro accepte :
-// - une chaine simple (retrocompatibilite)
-// - un tableau de blocs { type: "paragraph"|"list", text|items }
-//   Le texte d'un paragraphe peut contenir **mots en gras**.
 function formatInlineBold(text) {
   return escapeHtml(text).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 }
@@ -520,13 +516,16 @@ function attachFieldHandlers(q) {
   }
 }
 
-// ==================== PROGRESS (jalons par section, pas de compteur brut) ====================
+// ==================== PROGRESS (jalons par section, formulation professionnelle) ====================
+// Le nom technique de la section (ex: "Filtre d'accès", "Détail du parc") n'est
+// plus affiche dans l'indicateur d'etape : seul le numero d'etape et un message
+// d'encouragement sobre, adapte a un public d'entreprises, sont affiches.
 function milestoneMessage(pct) {
-  if (pct < 25) return "C'est parti !";
-  if (pct < 50) return "Vous avancez bien !";
-  if (pct < 75) return "Plus qu'une petite ligne droite !";
-  if (pct < 100) return "Presque terminé !";
-  return "Dernière question !";
+  if (pct < 25) return "Merci pour votre participation.";
+  if (pct < 50) return "Vous progressez efficacement.";
+  if (pct < 75) return "Encore quelques questions.";
+  if (pct < 100) return "Plus que quelques instants.";
+  return "Dernière question.";
 }
 
 function renderMilestoneDots(sectionIndex, totalSections) {
@@ -548,11 +547,10 @@ function updateProgress(q) {
 
   const sections = QUESTIONS.sections;
   const sectionIndex = Math.max(0, sections.findIndex(s => s.id === q.section));
-  const sectionTitle = sections[sectionIndex] ? sections[sectionIndex].title : "";
   renderMilestoneDots(sectionIndex, sections.length);
 
   document.getElementById("progress-label").textContent =
-    `Étape ${sectionIndex + 1}/${sections.length} · ${sectionTitle} — ${milestoneMessage(pct)}`;
+    `Étape ${sectionIndex + 1}/${sections.length} — ${milestoneMessage(pct)}`;
 }
 function toggleProgress(show) { document.getElementById("progress-wrap").hidden = !show; }
 function toggleNav(show) {
