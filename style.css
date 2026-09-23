@@ -211,6 +211,18 @@ body {
   margin-left: 4px;
 }
 
+/* ===== Illustration vectorielle (ex: benne 8m3 pour Q16) ===== */
+.question-illustration {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 20px;
+}
+.question-illustration svg {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+}
+
 /* ===== Options (radio / checkbox) ===== */
 .option-list {
   display: flex;
