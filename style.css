@@ -63,25 +63,51 @@ body {
   .app-header__title { font-size: 0.95rem; }
 }
 
-/* ===== Progress bar ===== */
+/* ===== Progress bar + jalons ===== */
 .progress-wrap {
+  background: var(--color-surface);
+  padding: 8px 16px 6px;
+  border-bottom: 1px solid var(--color-border);
+}
+.progress-bar-track {
   background: var(--color-border);
-  height: 8px;
-  position: relative;
-  width: 100%;
+  height: 6px;
+  border-radius: 6px;
+  overflow: hidden;
 }
 .progress-bar {
   background: var(--color-accent-btp);
-  height: 100%;
+  height: 6px;
   width: 0%;
-  border-radius: 0 6px 6px 0;
+  border-radius: 6px;
   transition: width 0.25s ease;
 }
+.milestone-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0 4px;
+}
+.milestone-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.milestone-dot.done {
+  background: var(--color-eco);
+}
+.milestone-dot.active {
+  background: var(--color-accent-btp);
+  transform: scale(1.4);
+}
 .progress-label {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--color-text-muted);
   text-align: center;
-  padding: 4px 0;
+  padding: 2px 0 4px;
+  font-weight: 600;
 }
 
 /* ===== Main root ===== */
@@ -111,6 +137,35 @@ body {
 .card p.intro-text {
   color: var(--color-text-muted);
   line-height: 1.6;
+  margin: 0 0 14px;
+}
+.card p.intro-text strong {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+.intro-list {
+  margin: 0 0 14px;
+  padding-left: 4px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.intro-list li {
+  color: var(--color-text);
+  line-height: 1.5;
+  padding-left: 22px;
+  position: relative;
+}
+.intro-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent-btp);
 }
 .card .meta-duration {
   display: inline-block;
