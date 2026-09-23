@@ -13,6 +13,26 @@ const ICONS = {
 
 const SECTION_ICON = { A: "recyclage", B: "recyclage", C: "camion", D: "camion", E: "benne", F: "camion", G: "recyclage" };
 
+// Illustrations plus detaillees pour certaines questions (SVG inline,
+// dessinees directement dans le code : pas d'image externe, pas de
+// depot tiers, donc aucune question de droit d'usage).
+const ILLUSTRATIONS = {
+  benne_8m3: `
+    <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 45 L45 25 L175 25 L200 45 Z" fill="none" stroke="var(--color-primary)" stroke-width="4" stroke-linejoin="round"/>
+      <rect x="20" y="45" width="180" height="70" rx="6" fill="none" stroke="var(--color-primary)" stroke-width="4"/>
+      <line x1="55" y1="49" x2="55" y2="111" stroke="var(--color-primary-light)" stroke-width="2" opacity="0.5"/>
+      <line x1="90" y1="49" x2="90" y2="111" stroke="var(--color-primary-light)" stroke-width="2" opacity="0.5"/>
+      <line x1="130" y1="49" x2="130" y2="111" stroke="var(--color-primary-light)" stroke-width="2" opacity="0.5"/>
+      <line x1="165" y1="49" x2="165" y2="111" stroke="var(--color-primary-light)" stroke-width="2" opacity="0.5"/>
+      <rect x="12" y="118" width="20" height="10" rx="2" fill="var(--color-primary)"/>
+      <rect x="188" y="118" width="20" height="10" rx="2" fill="var(--color-primary)"/>
+      <rect x="78" y="63" width="64" height="28" rx="6" fill="var(--color-accent-btp)"/>
+      <text x="110" y="83" font-family="system-ui, sans-serif" font-size="20" font-weight="700" text-anchor="middle" fill="var(--color-text)">8 m³</text>
+    </svg>
+  `
+};
+
 // ==================== STATE ====================
 let QUESTIONS = null;
 let state = {
@@ -276,11 +296,16 @@ function renderQuestion(q) {
     helperText = helperText ? helperText + " Plusieurs réponses possibles." : "Plusieurs réponses possibles.";
   }
 
+  const illustrationHtml = q.illustration && ILLUSTRATIONS[q.illustration]
+    ? `<div class="question-illustration">${ILLUSTRATIONS[q.illustration]}</div>`
+    : "";
+
   root.innerHTML = `
     <div class="card">
       <div class="section-tag">${icon} ${escapeHtml(sectionTitle)}</div>
       <p class="question-label">${escapeHtml(q.label)}${q.required ? '<span class="question-required">*</span>' : ''}</p>
       ${helperText ? `<p class="question-helper">${escapeHtml(helperText)}</p>` : ""}
+      ${illustrationHtml}
       ${fieldHtml}
       <div id="field-error-zone"></div>
     </div>
@@ -517,9 +542,6 @@ function attachFieldHandlers(q) {
 }
 
 // ==================== PROGRESS (jalons par section, formulation professionnelle) ====================
-// Le nom technique de la section (ex: "Filtre d'accès", "Détail du parc") n'est
-// plus affiche dans l'indicateur d'etape : seul le numero d'etape et un message
-// d'encouragement sobre, adapte a un public d'entreprises, sont affiches.
 function milestoneMessage(pct) {
   if (pct < 25) return "Vos réponses contribuent à mieux connaître la filière.";
   if (pct < 50) return "Vous progressez efficacement.";
