@@ -358,6 +358,7 @@ select.field-input {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
 }
 .volume-chip {
   position: relative;
@@ -394,6 +395,39 @@ select.field-input {
   left: 0;
   margin: 0;
   cursor: pointer;
+}
+
+/* Option "Ne souhaite pas repondre" : bien delimitee des autres pastilles
+   par un trait de separation (bordure gauche) et une couleur neutre en
+   pointilles, distincte des couleurs de reponse habituelles. */
+.volume-chip--nsp {
+  margin-left: 14px;
+  border-style: dashed;
+  border-color: var(--color-text-muted);
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  font-weight: 500;
+  font-style: italic;
+}
+.volume-chip--nsp::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 70%;
+  background: var(--color-border);
+}
+.volume-chip--nsp:hover {
+  border-color: var(--color-primary-light);
+}
+.volume-chip--nsp.selected {
+  background: var(--color-text-muted);
+  border-color: var(--color-text-muted);
+  color: #fff;
+  transform: none;
+  font-style: normal;
 }
 
 /* ===== Matrix number (Q10 : saisie libre par type de véhicule) ===== */
