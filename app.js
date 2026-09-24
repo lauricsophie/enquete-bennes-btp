@@ -13,9 +13,6 @@ const ICONS = {
 
 const SECTION_ICON = { A: "recyclage", B: "recyclage", C: "camion", D: "camion", E: "benne", F: "camion", G: "recyclage" };
 
-// Illustrations plus detaillees pour certaines questions (SVG inline,
-// dessinees directement dans le code : pas d'image externe, pas de
-// depot tiers, donc aucune question de droit d'usage).
 const ILLUSTRATIONS = {
   benne_8m3: `
     <svg viewBox="0 0 220 150" xmlns="http://www.w3.org/2000/svg">
@@ -143,6 +140,21 @@ function goToQuestion(id) {
 }
 
 // ==================== VALIDATION ====================
+function validateExtraField(q) {
+  if (!q.extra_field) return null;
+  const ef = q.extra_field;
+  const val = state.answers[ef.column];
+  if (ef.required && (val === undefined || String(val).trim() === "")) {
+    return `Le champ "${ef.label}" est obligatoire.`;
+  }
+  if (val !== undefined && String(val).trim() !== "") {
+    if (ef.type === "tel" && !/^\d{10}$/.test(String(val).trim())) {
+      return `Le numéro de téléphone doit comporter 10 chiffres, sans espace ni symbole.`;
+    }
+  }
+  return null;
+}
+
 function validateQuestion(q) {
   if (q.type === "matrix_single") {
     if (q.required) {
@@ -181,9 +193,6 @@ function validateQuestion(q) {
   }
 
   if (val !== undefined && val !== null && String(val).trim() !== "") {
-    if (col === "q3_siret" && !/^\d{14}$/.test(String(val).trim())) {
-      return "Le SIRET doit comporter exactement 14 chiffres.";
-    }
     if (q.type === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(val).trim())) {
       return "Le format de l'adresse e-mail est invalide.";
     }
@@ -191,6 +200,10 @@ function validateQuestion(q) {
       return "Merci de saisir uniquement des chiffres, sans espace ni symbole (pas de symbole \u20ac, pas de lettres).";
     }
   }
+
+  const extraError = validateExtraField(q);
+  if (extraError) return extraError;
+
   return null;
 }
 
@@ -290,7 +303,10 @@ function renderQuestion(q) {
   else if (q.type === "matrix_single") fieldHtml = renderMatrix(q);
   else if (q.type === "matrix_number") fieldHtml = renderMatrixNumber(q);
 
-  // Note d'aide : ajout automatique de "Plusieurs réponses possibles." pour les cases à cocher
+  if (q.extra_field) {
+    fieldHtml += renderExtraField(q.extra_field);
+  }
+
   let helperText = q.helper || "";
   if (q.type === "checkbox") {
     helperText = helperText ? helperText + " Plusieurs réponses possibles." : "Plusieurs réponses possibles.";
@@ -311,6 +327,16 @@ function renderQuestion(q) {
     </div>
   `;
   attachFieldHandlers(q);
+}
+
+function renderExtraField(ef) {
+  const val = state.answers[ef.column] || "";
+  const inputmode = ef.type === "tel" ? ' inputmode="numeric" pattern="[0-9]*"' : "";
+  return `
+    <div class="extra-field">
+      <label class="extra-field__label" for="${ef.column}">${escapeHtml(ef.label)}${ef.required ? '<span class="question-required">*</span>' : ''}</label>
+      <input class="field-input" id="${ef.column}" type="${ef.type === 'tel' ? 'text' : ef.type}"${inputmode} placeholder="${escapeHtml(ef.placeholder || '')}" value="${escapeHtml(val)}">
+    </div>`;
 }
 
 function renderRadio(q) {
@@ -539,6 +565,11 @@ function attachFieldHandlers(q) {
       });
     }
   }
+
+  if (q.extra_field) {
+    const efInput = document.getElementById(q.extra_field.column);
+    if (efInput) efInput.addEventListener("input", () => { state.answers[q.extra_field.column] = efInput.value; });
+  }
 }
 
 // ==================== PROGRESS (jalons par section, formulation professionnelle) ====================
@@ -609,6 +640,10 @@ function renderRecap() {
       if (q.allow_other && val === "Autre" && state.answers[col + "_autre"]) {
         display += ` (${state.answers[col + "_autre"]})`;
       }
+    }
+    if (q.extra_field) {
+      const efVal = state.answers[q.extra_field.column];
+      display += `<br>${escapeHtml(q.extra_field.label)} : ${efVal ? escapeHtml(efVal) : "—"}`;
     }
     items += `
       <div class="recap-item">
@@ -732,7 +767,6 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-// Sur l'écran récapitulatif, le bouton "Suivant" devient "Envoyer mes réponses"
 document.addEventListener("DOMContentLoaded", () => {
   const btnNext = document.getElementById("btn-next");
   btnNext.addEventListener("click", (e) => {
