@@ -349,8 +349,6 @@ select.field-input {
     gap: 12px;
     align-items: start;
   }
-  /* Ligne impaire isolee en fin de liste : occupe toute la largeur au
-     lieu de laisser un vide disgracieux a sa droite. */
   .volume-row--full {
     grid-column: 1 / -1;
   }
@@ -617,6 +615,22 @@ select.field-input {
   .btn--ghost { flex: 0 0 auto; }
 }
 
+/* Bouton Imprimer mes reponses (ecran recapitulatif uniquement) */
+.btn--print {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 20px;
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+}
+.btn--print:hover {
+  background: var(--color-eco-light);
+}
+.btn--print svg { width: 18px; height: 18px; flex-shrink: 0; }
+
 /* ===== Recap ===== */
 .recap-item {
   border-bottom: 1px solid var(--color-border);
@@ -707,4 +721,18 @@ select.field-input {
   font-weight: 700;
   cursor: pointer;
   min-height: 40px;
+}
+
+/* ===== Impression (recapitulatif propre) ===== */
+@media print {
+  .app-header, .progress-wrap, .nav-buttons, .btn--print, .recap-edit-link {
+    display: none !important;
+  }
+  .app-root { padding: 0; }
+  .card {
+    box-shadow: none;
+    border: 1px solid #000;
+    max-width: 100%;
+  }
+  body { background: #fff; }
 }
