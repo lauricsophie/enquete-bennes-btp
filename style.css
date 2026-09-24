@@ -143,6 +143,12 @@ body {
   margin: 0 auto;
 }
 
+/* Les cartes contenant une longue matrice profitent d'une largeur plus
+   genereuse sur grand ecran, pour permettre la grille 2 colonnes. */
+.card.card--wide {
+  max-width: 880px;
+}
+
 .card h1 {
   color: var(--color-primary);
   font-size: 1.4rem;
@@ -324,22 +330,33 @@ select.field-input {
   gap: 8px;
 }
 
-/* ===== Matrice simplifiee / gamifiee (Q8, Q14, Q17, Q25) ===== */
+/* ===== Matrice simplifiee / gamifiee (Q8, Q14, Q17, Q25) =====
+   Optimisation longueur de page : sur tablette/desktop, passage en grille
+   2 colonnes (les questions courtes a 3-4 lignes restent en 1 colonne
+   naturellement car peu de lignes). Espacements resserres. */
 .volume-matrix {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
+}
+@media (min-width: 768px) {
+  .volume-matrix {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
 }
 .volume-row {
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 14px;
+  padding: 10px 12px;
 }
 .volume-row__head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 .volume-row__icon {
   color: var(--color-secondary);
@@ -352,24 +369,24 @@ select.field-input {
 .volume-row__label {
   font-weight: 700;
   color: var(--color-primary);
-  font-size: 1.05rem;
+  font-size: 1rem;
 }
 .volume-row__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 .volume-chip {
   position: relative;
   border: 2px solid var(--color-border);
   border-radius: 999px;
-  padding: 10px 16px;
-  font-size: 0.9rem;
+  padding: 8px 13px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  min-height: 44px;
-  min-width: 44px;
+  min-height: 40px;
+  min-width: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -397,22 +414,21 @@ select.field-input {
   cursor: pointer;
 }
 
-/* Option "Ne souhaite pas repondre" : bien delimitee des autres pastilles
-   par un trait de separation (bordure gauche) et une couleur neutre en
-   pointilles, distincte des couleurs de reponse habituelles. */
 .volume-chip--nsp {
-  margin-left: 14px;
+  margin-left: 10px;
   border-style: dashed;
   border-color: var(--color-text-muted);
   color: var(--color-text-muted);
   background: var(--color-bg);
   font-weight: 500;
   font-style: italic;
+  font-size: 0.78rem;
+  padding: 8px 12px;
 }
 .volume-chip--nsp::before {
   content: "";
   position: absolute;
-  left: -10px;
+  left: -8px;
   top: 50%;
   transform: translateY(-50%);
   width: 1px;
@@ -429,6 +445,51 @@ select.field-input {
   transform: none;
   font-style: normal;
 }
+
+/* Ligne repliee (deja repondue) : resume compact sur une seule ligne,
+   fond vert tres clair pour signaler visuellement "complete". */
+.volume-row--collapsed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--color-eco-light);
+  min-height: 44px;
+}
+.volume-row--collapsed .volume-row__label {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+.volume-row__answer {
+  flex: 1;
+  font-weight: 600;
+  color: var(--color-eco);
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.volume-row__answer--nsp {
+  color: var(--color-text-muted);
+  font-style: italic;
+  font-weight: 400;
+}
+.volume-row__edit {
+  background: none;
+  border: none;
+  color: var(--color-primary-light);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 6px 8px;
+  min-height: 32px;
+}
+.volume-row__edit svg { width: 14px; height: 14px; }
+.volume-row__edit:hover { color: var(--color-primary); text-decoration: underline; }
 
 /* ===== Matrix number (Q10 : saisie libre par type de véhicule) ===== */
 .matrix-number {
