@@ -43,8 +43,6 @@ let state = {
   submitError: null
 };
 
-// Lignes de matrice explicitement rouvertes pour modification (reduit la
-// hauteur de la page : une ligne repondue se replie en resume compact).
 let expandedRows = new Set();
 let expandedRowsQuestionId = null;
 
@@ -324,8 +322,10 @@ function renderQuestion(q) {
     ? `<div class="question-illustration">${ILLUSTRATIONS[q.illustration]}</div>`
     : "";
 
+  const cardClass = q.type === "matrix_single" ? "card card--wide" : "card";
+
   root.innerHTML = `
-    <div class="card">
+    <div class="${cardClass}">
       <div class="section-tag">${icon} ${escapeHtml(sectionTitle)}</div>
       <p class="question-label">${escapeHtml(q.label)}${q.required ? '<span class="question-required">*</span>' : ''}</p>
       ${helperText ? `<p class="question-helper">${escapeHtml(helperText)}</p>` : ""}
@@ -453,9 +453,9 @@ function iconSizeForVolume(v) {
   return Math.round(pxmin + (c - vmin) / (vmax - vmin) * (pxmax - pxmin));
 }
 
-// Une ligne deja repondue se replie en resume compact (icone + libelle +
-// reponse + bouton Modifier), ce qui reduit fortement la hauteur totale
-// de la page pour les matrices a nombreuses lignes (ex: Q14, 9 lignes).
+// Ligne repliee = resume sur 2 lignes (jamais tronque) :
+// ligne 1 = icone + libelle + bouton Modifier
+// ligne 2 = reponse complete, en toutes lettres
 function renderMatrix(q) {
   if (expandedRowsQuestionId !== q.id) {
     expandedRows = new Set();
@@ -477,10 +477,11 @@ function renderMatrix(q) {
       const nspClass = val === NSP_LABEL ? " volume-row__answer--nsp" : "";
       html += `
         <div class="volume-row volume-row--collapsed">
-          ${iconHtml}
-          <span class="volume-row__label">${escapeHtml(rowLabel)}</span>
-          <span class="volume-row__answer${nspClass}">${escapeHtml(val)}</span>
-          <button type="button" class="volume-row__edit" data-col="${col}">${ICONS.edit} Modifier</button>
+          <div class="volume-row--collapsed__top">
+            <span class="volume-row--collapsed__left">${iconHtml}<span class="volume-row__label">${escapeHtml(rowLabel)}</span></span>
+            <button type="button" class="volume-row__edit" data-col="${col}">${ICONS.edit} Modifier</button>
+          </div>
+          <div class="volume-row__answer${nspClass}">${escapeHtml(val)}</div>
         </div>`;
       return;
     }
@@ -577,7 +578,7 @@ function attachFieldHandlers(q) {
     document.querySelectorAll(`.volume-row .volume-chip input[type="radio"]`).forEach(input => {
       input.addEventListener("change", () => {
         state.answers[input.name] = input.value;
-        expandedRows.delete(input.name); // se replie apres reponse
+        expandedRows.delete(input.name);
         renderQuestion(q);
       });
     });
