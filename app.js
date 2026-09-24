@@ -9,7 +9,8 @@ const ICONS = {
   recyclage: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7l3-4 3 4"/><path d="M10 3v9"/><path d="M17 17l-3 4-3-4"/><path d="M14 21v-9"/><path d="M4 14a8 8 0 0116-1"/></svg>`,
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg>`,
   alert: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l10 18H2L12 2zm0 6v6m0 3h0"/></svg>`,
-  edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>`
+  edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>`,
+  print: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><rect x="6" y="14" width="12" height="8"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/></svg>`
 };
 
 const SECTION_ICON = { A: "recyclage", B: "recyclage", C: "camion", D: "camion", E: "benne", F: "camion", G: "recyclage" };
@@ -476,9 +477,6 @@ function renderMatrix(q) {
     const indexBadge = volume === null
       ? `<span class="volume-row__index">${i + 1}</span>`
       : "";
-    // Si le nombre de lignes est impair, la derniere ligne est seule sur
-    // sa rangee de grille : on la fait occuper toute la largeur pour
-    // eviter un vide disgracieux a sa droite.
     const fullWidthClass = (isOdd && i === totalRows - 1) ? " volume-row--full" : "";
 
     if (!isExpanded) {
@@ -703,16 +701,19 @@ function renderRecap() {
   });
 
   root.innerHTML = `
-    <div class="card">
+    <div class="card" id="recap-card">
       <h1>Relire mes réponses</h1>
       <p class="intro-text">Vérifiez vos réponses avant l'envoi définitif.</p>
       ${items}
       ${state.submitError ? `<div class="field-error" role="alert">${ICONS.alert}<span>${escapeHtml(state.submitError)}</span></div>` : ""}
+      <button type="button" class="btn btn--ghost btn--print" id="btn-print">${ICONS.print} Imprimer mes réponses</button>
     </div>
   `;
   document.querySelectorAll(".recap-edit-link").forEach(btn => {
     btn.addEventListener("click", () => goToQuestion(btn.dataset.qid));
   });
+  const printBtn = document.getElementById("btn-print");
+  if (printBtn) printBtn.addEventListener("click", () => window.print());
 }
 
 // ==================== SUBMIT ====================
