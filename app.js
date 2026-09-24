@@ -30,6 +30,8 @@ const ILLUSTRATIONS = {
   `
 };
 
+const NSP_LABEL = "Ne souhaite pas répondre";
+
 // ==================== STATE ====================
 let QUESTIONS = null;
 let state = {
@@ -373,7 +375,8 @@ function renderRadioChips(q) {
   let html = `<div class="chips-wrap">`;
   q.options.forEach(opt => {
     const sel = val === opt ? "selected" : "";
-    html += `<label class="volume-chip ${sel}" data-value="${escapeHtml(opt)}">
+    const nspClass = opt === NSP_LABEL ? " volume-chip--nsp" : "";
+    html += `<label class="volume-chip${nspClass} ${sel}" data-value="${escapeHtml(opt)}">
       <input type="radio" name="${current}" value="${escapeHtml(opt)}" ${val === opt ? "checked" : ""}>${escapeHtml(opt)}</label>`;
   });
   html += `</div>`;
@@ -462,7 +465,8 @@ function renderMatrix(q) {
         <div class="volume-row__chips">`;
     q.options.forEach(opt => {
       const sel = val === opt ? "selected" : "";
-      html += `<label class="volume-chip ${sel}" data-col="${col}" data-value="${escapeHtml(opt)}">
+      const nspClass = opt === NSP_LABEL ? " volume-chip--nsp" : "";
+      html += `<label class="volume-chip${nspClass} ${sel}" data-col="${col}" data-value="${escapeHtml(opt)}">
             <input type="radio" name="${col}" value="${escapeHtml(opt)}" ${val === opt ? "checked" : ""}>${escapeHtml(opt)}</label>`;
     });
     html += `</div></div>`;
