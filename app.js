@@ -8,7 +8,8 @@ const ICONS = {
   camion: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="9" width="13" height="7"/><path d="M14 12h5l3 3v1h-8z"/><circle cx="6" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>`,
   recyclage: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7l3-4 3 4"/><path d="M10 3v9"/><path d="M17 17l-3 4-3-4"/><path d="M14 21v-9"/><path d="M4 14a8 8 0 0116-1"/></svg>`,
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg>`,
-  alert: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l10 18H2L12 2zm0 6v6m0 3h0"/></svg>`
+  alert: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l10 18H2L12 2zm0 6v6m0 3h0"/></svg>`,
+  edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>`
 };
 
 const SECTION_ICON = { A: "recyclage", B: "recyclage", C: "camion", D: "camion", E: "benne", F: "camion", G: "recyclage" };
@@ -41,6 +42,11 @@ let state = {
   submitting: false,
   submitError: null
 };
+
+// Lignes de matrice explicitement rouvertes pour modification (reduit la
+// hauteur de la page : une ligne repondue se replie en resume compact).
+let expandedRows = new Set();
+let expandedRowsQuestionId = null;
 
 // ==================== INIT ====================
 document.addEventListener("DOMContentLoaded", async () => {
@@ -442,20 +448,43 @@ function extractVolume(label) {
 
 function iconSizeForVolume(v) {
   const vmin = 3, vmax = 40;
-  const pxmin = 18, pxmax = 42;
+  const pxmin = 16, pxmax = 32;
   const c = Math.max(vmin, Math.min(vmax, v));
   return Math.round(pxmin + (c - vmin) / (vmax - vmin) * (pxmax - pxmin));
 }
 
+// Une ligne deja repondue se replie en resume compact (icone + libelle +
+// reponse + bouton Modifier), ce qui reduit fortement la hauteur totale
+// de la page pour les matrices a nombreuses lignes (ex: Q14, 9 lignes).
 function renderMatrix(q) {
+  if (expandedRowsQuestionId !== q.id) {
+    expandedRows = new Set();
+    expandedRowsQuestionId = q.id;
+  }
+
   let html = `<div class="volume-matrix">`;
   q.rows.forEach((rowLabel, i) => {
     const col = q.columns[i];
     const val = state.answers[col];
+    const isAnswered = !!val;
+    const isExpanded = !isAnswered || expandedRows.has(col);
     const volume = extractVolume(rowLabel);
     const iconHtml = volume !== null
       ? `<span class="volume-row__icon" style="width:${iconSizeForVolume(volume)}px;height:${iconSizeForVolume(volume)}px;">${ICONS.benne}</span>`
       : "";
+
+    if (!isExpanded) {
+      const nspClass = val === NSP_LABEL ? " volume-row__answer--nsp" : "";
+      html += `
+        <div class="volume-row volume-row--collapsed">
+          ${iconHtml}
+          <span class="volume-row__label">${escapeHtml(rowLabel)}</span>
+          <span class="volume-row__answer${nspClass}">${escapeHtml(val)}</span>
+          <button type="button" class="volume-row__edit" data-col="${col}">${ICONS.edit} Modifier</button>
+        </div>`;
+      return;
+    }
+
     html += `
       <div class="volume-row">
         <div class="volume-row__head">
@@ -548,6 +577,13 @@ function attachFieldHandlers(q) {
     document.querySelectorAll(`.volume-row .volume-chip input[type="radio"]`).forEach(input => {
       input.addEventListener("change", () => {
         state.answers[input.name] = input.value;
+        expandedRows.delete(input.name); // se replie apres reponse
+        renderQuestion(q);
+      });
+    });
+    document.querySelectorAll(`.volume-row__edit`).forEach(btn => {
+      btn.addEventListener("click", () => {
+        expandedRows.add(btn.dataset.col);
         renderQuestion(q);
       });
     });
