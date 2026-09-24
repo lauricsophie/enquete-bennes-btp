@@ -225,6 +225,18 @@ body {
   margin-left: 4px;
 }
 
+/* ===== Champ complementaire (ex: telephone sous email) ===== */
+.extra-field {
+  margin-top: 14px;
+}
+.extra-field__label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+
 /* ===== Illustration vectorielle (ex: benne 8m3 pour Q16) ===== */
 .question-illustration {
   display: flex;
