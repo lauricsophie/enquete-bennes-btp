@@ -143,8 +143,6 @@ body {
   margin: 0 auto;
 }
 
-/* Les cartes contenant une longue matrice profitent d'une largeur plus
-   genereuse sur grand ecran, pour permettre la grille 2 colonnes. */
 .card.card--wide {
   max-width: 880px;
 }
@@ -330,10 +328,7 @@ select.field-input {
   gap: 8px;
 }
 
-/* ===== Matrice simplifiee / gamifiee (Q8, Q14, Q17, Q25) =====
-   Optimisation longueur de page : sur tablette/desktop, passage en grille
-   2 colonnes (les questions courtes a 3-4 lignes restent en 1 colonne
-   naturellement car peu de lignes). Espacements resserres. */
+/* ===== Matrice simplifiee / gamifiee (Q8, Q14, Q17, Q25) ===== */
 .volume-matrix {
   display: flex;
   flex-direction: column;
@@ -446,39 +441,49 @@ select.field-input {
   font-style: normal;
 }
 
-/* Ligne repliee (deja repondue) : resume compact sur une seule ligne,
-   fond vert tres clair pour signaler visuellement "complete". */
+/* Ligne repliee : resume sur 2 lignes, jamais tronque.
+   Ligne 1 = icone + libelle + bouton Modifier (alignes aux extremites).
+   Ligne 2 = reponse complete en toutes lettres, peut passer a la ligne
+   si le texte est long (ex: "Ne souhaite pas repondre"). */
 .volume-row--collapsed {
+  padding: 8px 10px;
+  background: var(--color-eco-light);
+  min-height: unset;
+}
+.volume-row--collapsed__top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  padding: 8px 12px;
-  background: var(--color-eco-light);
-  min-height: 44px;
+}
+.volume-row--collapsed__left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 .volume-row--collapsed .volume-row__label {
-  font-size: 0.9rem;
-  flex-shrink: 0;
+  font-size: 0.88rem;
+  white-space: nowrap;
 }
 .volume-row__answer {
-  flex: 1;
-  font-weight: 600;
+  margin-top: 4px;
+  font-weight: 700;
   color: var(--color-eco);
-  font-size: 0.9rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 0.88rem;
+  line-height: 1.3;
+  word-break: break-word;
 }
 .volume-row__answer--nsp {
   color: var(--color-text-muted);
   font-style: italic;
-  font-weight: 400;
+  font-weight: 500;
 }
 .volume-row__edit {
   background: none;
   border: none;
   color: var(--color-primary-light);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
@@ -487,8 +492,9 @@ select.field-input {
   flex-shrink: 0;
   padding: 6px 8px;
   min-height: 32px;
+  white-space: nowrap;
 }
-.volume-row__edit svg { width: 14px; height: 14px; }
+.volume-row__edit svg { width: 14px; height: 14px; flex-shrink: 0; }
 .volume-row__edit:hover { color: var(--color-primary); text-decoration: underline; }
 
 /* ===== Matrix number (Q10 : saisie libre par type de véhicule) ===== */
