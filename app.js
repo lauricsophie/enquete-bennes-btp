@@ -329,6 +329,7 @@ function renderQuestion(q) {
       <div class="section-tag">${icon} ${escapeHtml(sectionTitle)}</div>
       <p class="question-label">${escapeHtml(q.label)}${q.required ? '<span class="question-required">*</span>' : ''}</p>
       ${helperText ? `<p class="question-helper">${escapeHtml(helperText)}</p>` : ""}
+      ${q.type === "matrix_single" ? '<p class="matrix-subquestion-hint">Pour chaque élément ci-dessous :</p>' : ""}
       ${illustrationHtml}
       ${fieldHtml}
       <div id="field-error-zone"></div>
@@ -453,9 +454,9 @@ function iconSizeForVolume(v) {
   return Math.round(pxmin + (c - vmin) / (vmax - vmin) * (pxmax - pxmin));
 }
 
-// Ligne repliee = resume sur 2 lignes (jamais tronque) :
-// ligne 1 = icone + libelle + bouton Modifier
-// ligne 2 = reponse complete, en toutes lettres
+// Chaque ligne de matrice est une SOUS-question : elle doit rester
+// visuellement subordonnee a la question principale (police moins lourde,
+// couleur plus neutre, numerotee) pour eviter la confusion de hierarchie.
 function renderMatrix(q) {
   if (expandedRowsQuestionId !== q.id) {
     expandedRows = new Set();
@@ -472,13 +473,18 @@ function renderMatrix(q) {
     const iconHtml = volume !== null
       ? `<span class="volume-row__icon" style="width:${iconSizeForVolume(volume)}px;height:${iconSizeForVolume(volume)}px;">${ICONS.benne}</span>`
       : "";
+    // Numerotation affichee uniquement pour les lignes "phrase complete"
+    // (pas de volume detecte), pour renforcer "ceci est un sous-item N".
+    const indexBadge = volume === null
+      ? `<span class="volume-row__index">${i + 1}</span>`
+      : "";
 
     if (!isExpanded) {
       const nspClass = val === NSP_LABEL ? " volume-row__answer--nsp" : "";
       html += `
         <div class="volume-row volume-row--collapsed">
           <div class="volume-row--collapsed__top">
-            <span class="volume-row--collapsed__left">${iconHtml}<span class="volume-row__label">${escapeHtml(rowLabel)}</span></span>
+            <span class="volume-row--collapsed__left">${iconHtml}${indexBadge}<span class="volume-row__label">${escapeHtml(rowLabel)}</span></span>
             <button type="button" class="volume-row__edit" data-col="${col}">${ICONS.edit} Modifier</button>
           </div>
           <div class="volume-row__answer${nspClass}">${escapeHtml(val)}</div>
@@ -489,7 +495,7 @@ function renderMatrix(q) {
     html += `
       <div class="volume-row">
         <div class="volume-row__head">
-          ${iconHtml}
+          ${iconHtml}${indexBadge}
           <span class="volume-row__label">${escapeHtml(rowLabel)}</span>
         </div>
         <div class="volume-row__chips">`;
