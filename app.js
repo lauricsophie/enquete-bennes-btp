@@ -62,6 +62,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("btn-prev").addEventListener("click", onPrev);
   document.getElementById("btn-next").addEventListener("click", onNext);
+  const printBtn = document.getElementById("btn-print");
+  if (printBtn) printBtn.addEventListener("click", () => window.print());
 });
 
 // ==================== STORAGE ====================
@@ -294,6 +296,7 @@ function renderQuestion(q) {
   toggleNav(true);
   toggleProgress(true);
   updateProgress(q);
+  togglePrintButton(false);
 
   const root = document.getElementById("app-root");
   const icon = ICONS[SECTION_ICON[q.section]] || ICONS.recyclage;
@@ -658,12 +661,19 @@ function toggleNav(show) {
   document.getElementById("btn-prev").style.display = show ? "" : "none";
   document.getElementById("btn-next").textContent = "Suivant";
 }
+function togglePrintButton(show) {
+  const printBtn = document.getElementById("btn-print");
+  if (!printBtn) return;
+  printBtn.hidden = !show;
+  if (show) printBtn.innerHTML = `${ICONS.print} Imprimer`;
+}
 
 // ==================== RECAP ====================
 function renderRecap() {
   state.screen = "recap";
   toggleProgress(false);
   toggleNav(true);
+  togglePrintButton(true);
   document.getElementById("btn-next").textContent = "Envoyer mes réponses";
 
   const visible = getVisibleQuestions();
@@ -706,14 +716,11 @@ function renderRecap() {
       <p class="intro-text">Vérifiez vos réponses avant l'envoi définitif.</p>
       ${items}
       ${state.submitError ? `<div class="field-error" role="alert">${ICONS.alert}<span>${escapeHtml(state.submitError)}</span></div>` : ""}
-      <button type="button" class="btn btn--ghost btn--print" id="btn-print">${ICONS.print} Imprimer mes réponses</button>
     </div>
   `;
   document.querySelectorAll(".recap-edit-link").forEach(btn => {
     btn.addEventListener("click", () => goToQuestion(btn.dataset.qid));
   });
-  const printBtn = document.getElementById("btn-print");
-  if (printBtn) printBtn.addEventListener("click", () => window.print());
 }
 
 // ==================== SUBMIT ====================
@@ -723,6 +730,7 @@ function onSubmit() {
   const root = document.getElementById("app-root");
   root.innerHTML = `<div class="card" style="text-align:center;"><div class="spinner"></div><p class="intro-text">Envoi en cours...</p></div>`;
   toggleNav(false);
+  togglePrintButton(false);
 
   const payload = buildPayload();
 
@@ -787,6 +795,7 @@ function renderEnd() {
   state.screen = "end";
   toggleProgress(false);
   toggleNav(false);
+  togglePrintButton(false);
   const root = document.getElementById("app-root");
   root.innerHTML = `
     <div class="end-screen">
