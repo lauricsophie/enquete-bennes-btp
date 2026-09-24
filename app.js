@@ -454,14 +454,14 @@ function iconSizeForVolume(v) {
   return Math.round(pxmin + (c - vmin) / (vmax - vmin) * (pxmax - pxmin));
 }
 
-// Chaque ligne de matrice est une SOUS-question : elle doit rester
-// visuellement subordonnee a la question principale (police moins lourde,
-// couleur plus neutre, numerotee) pour eviter la confusion de hierarchie.
 function renderMatrix(q) {
   if (expandedRowsQuestionId !== q.id) {
     expandedRows = new Set();
     expandedRowsQuestionId = q.id;
   }
+
+  const totalRows = q.rows.length;
+  const isOdd = totalRows % 2 === 1;
 
   let html = `<div class="volume-matrix">`;
   q.rows.forEach((rowLabel, i) => {
@@ -473,16 +473,18 @@ function renderMatrix(q) {
     const iconHtml = volume !== null
       ? `<span class="volume-row__icon" style="width:${iconSizeForVolume(volume)}px;height:${iconSizeForVolume(volume)}px;">${ICONS.benne}</span>`
       : "";
-    // Numerotation affichee uniquement pour les lignes "phrase complete"
-    // (pas de volume detecte), pour renforcer "ceci est un sous-item N".
     const indexBadge = volume === null
       ? `<span class="volume-row__index">${i + 1}</span>`
       : "";
+    // Si le nombre de lignes est impair, la derniere ligne est seule sur
+    // sa rangee de grille : on la fait occuper toute la largeur pour
+    // eviter un vide disgracieux a sa droite.
+    const fullWidthClass = (isOdd && i === totalRows - 1) ? " volume-row--full" : "";
 
     if (!isExpanded) {
       const nspClass = val === NSP_LABEL ? " volume-row__answer--nsp" : "";
       html += `
-        <div class="volume-row volume-row--collapsed">
+        <div class="volume-row volume-row--collapsed${fullWidthClass}">
           <div class="volume-row--collapsed__top">
             <span class="volume-row--collapsed__left">${iconHtml}${indexBadge}<span class="volume-row__label">${escapeHtml(rowLabel)}</span></span>
             <button type="button" class="volume-row__edit" data-col="${col}">${ICONS.edit} Modifier</button>
@@ -493,7 +495,7 @@ function renderMatrix(q) {
     }
 
     html += `
-      <div class="volume-row">
+      <div class="volume-row${fullWidthClass}">
         <div class="volume-row__head">
           ${iconHtml}${indexBadge}
           <span class="volume-row__label">${escapeHtml(rowLabel)}</span>
