@@ -458,6 +458,10 @@ function iconSizeForVolume(v) {
   return Math.round(pxmin + (c - vmin) / (vmax - vmin) * (pxmax - pxmin));
 }
 
+// Grille CSS fiable (2 colonnes sur tablette/desktop) : le nombre de
+// lignes formant la DERNIERE rangee (1 ou 2) determine quelles lignes
+// n'ont pas de bordure basse, et si la derniere ligne (seule) doit
+// occuper toute la largeur.
 function renderMatrix(q) {
   if (expandedRowsQuestionId !== q.id) {
     expandedRows = new Set();
@@ -465,7 +469,8 @@ function renderMatrix(q) {
   }
 
   const totalRows = q.rows.length;
-  const isOdd = totalRows % 2 === 1;
+  const lastRowSize = totalRows % 2 === 0 ? 2 : 1;
+  const lastRowStart = totalRows - lastRowSize;
 
   let html = `<div class="volume-matrix">`;
   q.rows.forEach((rowLabel, i) => {
@@ -480,12 +485,14 @@ function renderMatrix(q) {
     const indexBadge = volume === null
       ? `<span class="volume-row__index">${i + 1}</span>`
       : "";
-    const fullWidthClass = (isOdd && i === totalRows - 1) ? " volume-row--full" : "";
+    const isLastRow = i >= lastRowStart;
+    const isFullWidth = lastRowSize === 1 && i === lastRowStart;
+    const extraClass = (isLastRow ? " volume-row--noborder" : "") + (isFullWidth ? " volume-row--full" : "");
 
     if (!isExpanded) {
       const nspClass = val === NSP_LABEL ? " volume-row__answer--nsp" : "";
       html += `
-        <div class="volume-row volume-row--collapsed${fullWidthClass}">
+        <div class="volume-row volume-row--collapsed${extraClass}">
           <div class="volume-row--collapsed__top">
             <span class="volume-row--collapsed__left">${iconHtml}${indexBadge}<span class="volume-row__label">${escapeHtml(rowLabel)}</span></span>
             <button type="button" class="volume-row__edit" data-col="${col}">${ICONS.edit} Modifier</button>
@@ -496,7 +503,7 @@ function renderMatrix(q) {
     }
 
     html += `
-      <div class="volume-row${fullWidthClass}">
+      <div class="volume-row${extraClass}">
         <div class="volume-row__head">
           ${iconHtml}${indexBadge}
           <span class="volume-row__label">${escapeHtml(rowLabel)}</span>
