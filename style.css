@@ -337,10 +337,9 @@ select.field-input {
 }
 
 /* ===== Matrice simplifiee / gamifiee (Q8, Q14, Q17, Q25) =====
-   Optimisation : les lignes ne sont plus des cartes individuelles avec
-   bordure complete chacune, mais un SEUL bloc unifie (comme une liste),
-   chaque ligne separee par un simple trait horizontal. Principe de repli
-   apres reponse conserve a l'identique (voir app.js). */
+   Bloc unifie via CSS Grid (rendu fiable des bordures/arrondis, contrairement
+   a column-count). Une seule bordure/arrondi exterieur, les lignes sont
+   separees par de simples traits, pas des cartes individuelles. */
 .volume-matrix {
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
@@ -349,8 +348,14 @@ select.field-input {
 }
 @media (min-width: 768px) {
   .volume-matrix {
-    column-count: 2;
-    column-gap: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .volume-row--full {
+    grid-column: 1 / -1;
+  }
+  .volume-row:not(.volume-row--full):nth-child(odd) {
+    border-right: 1px solid var(--color-border);
   }
 }
 .volume-row {
@@ -359,9 +364,8 @@ select.field-input {
   border-bottom: 1px solid var(--color-border);
   border-radius: 0;
   padding: 10px 14px;
-  break-inside: avoid;
 }
-.volume-row:last-child {
+.volume-row--noborder {
   border-bottom: none;
 }
 .volume-row__head {
@@ -476,9 +480,6 @@ select.field-input {
   font-style: normal;
 }
 
-/* Ligne repliee (deja repondue) : resume sur 2 lignes, integree au meme
-   bloc unifie, juste avec une teinte de fond differente pour signaler
-   visuellement "complete" (effet liste à bandes). */
 .volume-row--collapsed {
   padding: 8px 14px;
   background: var(--color-eco-light);
