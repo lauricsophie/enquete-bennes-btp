@@ -165,11 +165,12 @@ function validateExtraField(q) {
 }
 
 // Condition generique pour l'affichage conditionnel d'une LIGNE de matrice
-// (ex: Q9 n'affiche le type de vehicule que si Q8 > 1 pour ce type).
+// (ex: Q9 n'affiche le type de vehicule que si Q8 >= 1 pour ce type,
+// c'est-a-dire tout sauf "0", vide ou non renseigne).
 function rowConditionMet(sourceVal) {
   if (sourceVal === undefined || sourceVal === null || sourceVal === "") return false;
-  if (sourceVal === "0" || sourceVal === "1") return false;
-  return true; // "2", "3", "4", "5", "Plus de 5"
+  if (sourceVal === "0") return false;
+  return true; // "1", "2", "3", "4", "5", "Plus de 5"
 }
 
 function getVisibleRowIndices(q) {
@@ -477,10 +478,6 @@ function iconSizeForVolume(v) {
   return Math.round(pxmin + (c - vmin) / (vmax - vmin) * (pxmax - pxmin));
 }
 
-// Bloc unifie (grille CSS) avec lignes eventuellement filtrees par une
-// condition sur une autre question (ex: Q9 n'affiche un type de vehicule
-// que si sa quantite en Q8 est superieure a 1). Le principe de repli
-// apres reponse reste identique.
 function renderMatrix(q) {
   if (expandedRowsQuestionId !== q.id) {
     expandedRows = new Set();
