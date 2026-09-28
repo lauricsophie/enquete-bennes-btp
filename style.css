@@ -336,10 +336,7 @@ select.field-input {
   gap: 8px;
 }
 
-/* ===== Matrice simplifiee / gamifiee (Q8, Q14, Q17, Q25) =====
-   Bloc unifie via CSS Grid (rendu fiable des bordures/arrondis, contrairement
-   a column-count). Une seule bordure/arrondi exterieur, les lignes sont
-   separees par de simples traits, pas des cartes individuelles. */
+/* ===== Matrice simplifiee / gamifiee (Q8, Q14, Q17, Q25) ===== */
 .volume-matrix {
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
@@ -437,6 +434,16 @@ select.field-input {
   color: var(--color-primary);
   transform: scale(1.05);
 }
+
+/* Selection "0" : couleur neutre plutot que l'accent lime, pour ne pas
+   donner le meme poids visuel a "aucun" qu'a une vraie quantite. */
+.volume-chip--zero.selected {
+  background: var(--color-sky-light);
+  border-color: var(--color-sky);
+  color: var(--color-primary);
+  transform: none;
+}
+
 .volume-chip input {
   position: absolute;
   opacity: 0;
@@ -481,7 +488,7 @@ select.field-input {
 }
 
 .volume-row--collapsed {
-  padding: 8px 14px;
+  padding: 8px 10px;
   background: var(--color-eco-light);
   min-height: unset;
 }
@@ -515,6 +522,10 @@ select.field-input {
   color: var(--color-text-muted);
   font-style: italic;
   font-weight: 500;
+}
+.volume-row__answer--zero {
+  color: var(--color-text-muted);
+  font-weight: 600;
 }
 .volume-row__edit {
   background: none;
