@@ -219,6 +219,15 @@ function validateQuestion(q) {
     return null;
   }
 
+  if (q.type === "slider") {
+    const col = q.columns[0];
+    const v = state.answers[col];
+    if (q.required && (v === undefined || v === null || String(v).trim() === "")) {
+      return "Merci de positionner le curseur pour répondre à cette question.";
+    }
+    return null;
+  }
+
   const col = q.columns[0];
   const val = state.answers[col];
 
@@ -341,6 +350,7 @@ function renderQuestion(q) {
   else if (q.type === "number") fieldHtml = renderText(q, "number");
   else if (q.type === "matrix_single") fieldHtml = renderMatrix(q);
   else if (q.type === "matrix_number") fieldHtml = renderMatrixNumber(q);
+  else if (q.type === "slider") fieldHtml = renderSlider(q);
 
   if (q.extra_field) {
     fieldHtml += renderExtraField(q.extra_field);
@@ -469,6 +479,25 @@ function renderText(q, type) {
   const inputmode = type === "number" ? ' inputmode="numeric" pattern="[0-9]*"' : "";
   const inputType = type === "number" ? "text" : (type || "text");
   return `<input class="field-input" id="${current}" type="${inputType}"${inputmode} value="${escapeHtml(val)}" placeholder="${type === "email" ? "nom@entreprise.fr" : ""}">`;
+}
+
+function renderSlider(q) {
+  const current = q.columns[0];
+  const min = q.min !== undefined ? q.min : 0;
+  const max = q.max !== undefined ? q.max : 100;
+  const step = q.step !== undefined ? q.step : 1;
+  const stored = state.answers[current];
+  const hasValue = stored !== undefined && stored !== null && String(stored).trim() !== "";
+  const displayVal = hasValue ? stored : Math.round((min + max) / 2);
+  return `
+    <div class="slider-field">
+      <div class="slider-field__value" id="${current}_value">${hasValue ? displayVal : "—"}${q.unit || ""}</div>
+      <input class="slider-field__input" id="${current}" type="range" min="${min}" max="${max}" step="${step}" value="${displayVal}" data-touched="${hasValue ? "true" : "false"}">
+      <div class="slider-field__scale">
+        <span>${min}${q.unit || ""}</span>
+        <span>${max}${q.unit || ""}</span>
+      </div>
+    </div>`;
 }
 
 // ==================== MATRICE SIMPLIFIEE / GAMIFIEE ====================
@@ -802,6 +831,18 @@ function attachFieldHandlers(q) {
     }
   }
 
+  if (q.type === "slider") {
+    const slider = document.getElementById(current);
+    const valueLabel = document.getElementById(current + "_value");
+    if (slider) {
+      slider.addEventListener("input", () => {
+        state.answers[current] = slider.value;
+        if (valueLabel) valueLabel.textContent = `${slider.value}${q.unit || ""}`;
+        slider.dataset.touched = "true";
+      });
+    }
+  }
+
   if (q.extra_field) {
     const efInput = document.getElementById(q.extra_field.column);
     if (efInput) efInput.addEventListener("input", () => { state.answers[q.extra_field.column] = efInput.value; });
@@ -879,6 +920,10 @@ function renderRecap() {
         display = visibleIdx.map(i => `${q.rows[i]} : ${state.answers[q.columns[i]] || "—"} km/an`).join("<br>");
         if (!display) display = "—";
       }
+    } else if (q.type === "slider") {
+      const col = q.columns[0];
+      const v = state.answers[col];
+      display = (v !== undefined && v !== null && String(v).trim() !== "") ? `${v}${q.unit || ""}` : "—";
     } else {
       const col = q.columns[0];
       const val = state.answers[col];
