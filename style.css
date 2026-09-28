@@ -585,7 +585,7 @@ select.field-input {
 .volume-row__open svg { width: 14px; height: 14px; flex-shrink: 0; }
 .volume-row__open:hover { text-decoration: underline; }
 
-/* ===== Matrix number (Q10 : saisie libre par type de véhicule) ===== */
+/* ===== Matrix number (Q10 : kilometres/an, revelation progressive) ===== */
 .matrix-number {
   display: flex;
   flex-direction: column;
@@ -614,6 +614,24 @@ select.field-input {
 @media (max-width: 480px) {
   .matrix-number-row { flex-direction: row; flex-wrap: wrap; }
   .matrix-number-row__input { width: 100px; }
+}
+
+/* Ligne kilometrique deployee dans la matrice volume-matrix (Q10),
+   avec le meme gabarit que les lignes de Q9 pour rester coherent. */
+.matrix-number-row--inline {
+  border: none;
+  padding: 0;
+  gap: 8px;
+}
+.matrix-number-row--inline .matrix-number-row__input {
+  width: 110px;
+  min-height: 40px;
+}
+.matrix-number-row__unit {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 /* ===== Error messages ===== */
