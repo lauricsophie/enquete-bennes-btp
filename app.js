@@ -10,7 +10,8 @@ const ICONS = {
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg>`,
   alert: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l10 18H2L12 2zm0 6v6m0 3h0"/></svg>`,
   edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>`,
-  print: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><rect x="6" y="14" width="12" height="8"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/></svg>`
+  print: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><rect x="6" y="14" width="12" height="8"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/></svg>`,
+  chevron: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>`
 };
 
 const SECTION_ICON = { A: "recyclage", B: "recyclage", C: "camion", D: "camion", E: "benne", F: "camion", G: "recyclage" };
@@ -45,6 +46,8 @@ let state = {
   submitError: null
 };
 
+// Lignes explicitement ouvertes par l'utilisateur (via "Modifier" ou
+// "Repondre"), en plus de la revelation progressive automatique.
 let expandedRows = new Set();
 let expandedRowsQuestionId = null;
 
@@ -476,6 +479,12 @@ function iconSizeForVolume(v) {
   return Math.round(pxmin + (c - vmin) / (vmax - vmin) * (pxmax - pxmin));
 }
 
+// Revelation progressive : parmi les lignes NON repondues, seule la
+// premiere (dans l'ordre) est depliee par defaut avec ses chips. Les
+// suivantes affichent un etat "en attente" compact, et peuvent etre
+// ouvertes manuellement via un bouton "Répondre" si on veut sauter l'ordre.
+// Cela evite d'afficher trop d'options simultanement (ex: Q9 avec 3
+// types de vehicules x 6 options = 18 boutons d'un coup).
 function renderMatrix(q) {
   if (expandedRowsQuestionId !== q.id) {
     expandedRows = new Set();
@@ -492,13 +501,26 @@ function renderMatrix(q) {
   const lastRowSize = totalRows % 2 === 0 ? 2 : 1;
   const lastRowStart = totalRows - lastRowSize;
 
+  // Premiere ligne non repondue (dans l'ordre d'affichage) : c'est la
+  // seule a s'ouvrir automatiquement si rien n'est encore renseigne.
+  let firstUnansweredDisplayIdx = -1;
+  rowIndices.forEach((i, displayIdx) => {
+    if (firstUnansweredDisplayIdx === -1 && !state.answers[q.columns[i]]) {
+      firstUnansweredDisplayIdx = displayIdx;
+    }
+  });
+
   let html = `<div class="volume-matrix">`;
   rowIndices.forEach((i, displayIdx) => {
     const rowLabel = q.rows[i];
     const col = q.columns[i];
     const val = state.answers[col];
     const isAnswered = !!val;
-    const isExpanded = !isAnswered || expandedRows.has(col);
+    const manuallyOpened = expandedRows.has(col);
+    const isAutoFirst = displayIdx === firstUnansweredDisplayIdx;
+    const isExpanded = manuallyOpened || (!isAnswered && isAutoFirst) || isAnswered && manuallyOpened;
+    const isPending = !isAnswered && !isAutoFirst && !manuallyOpened;
+
     const volume = extractVolume(rowLabel);
     const iconHtml = volume !== null
       ? `<span class="volume-row__icon" style="width:${iconSizeForVolume(volume)}px;height:${iconSizeForVolume(volume)}px;">${ICONS.benne}</span>`
@@ -510,9 +532,21 @@ function renderMatrix(q) {
     const isFullWidth = lastRowSize === 1 && displayIdx === lastRowStart;
     const extraClass = (isLastRow ? " volume-row--noborder" : "") + (isFullWidth ? " volume-row--full" : "");
 
-    if (!isExpanded) {
-      // Resume replie sur UNE SEULE ligne (a la suite) : numero + libelle
-      // + reponse + bouton Modifier, au lieu de 2 lignes empilees.
+    // Etat "en attente" : compact, sans chips, ouvrable manuellement.
+    if (isPending) {
+      html += `
+        <div class="volume-row volume-row--pending${extraClass}">
+          <div class="volume-row--collapsed__inline">
+            ${iconHtml}${indexBadge}
+            <span class="volume-row__label volume-row__label--pending">${escapeHtml(rowLabel)}</span>
+            <button type="button" class="volume-row__open" data-col="${col}">Répondre ${ICONS.chevron}</button>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // Etat replie apres reponse (deja repondu, pas en cours d'edition).
+    if (isAnswered && !isExpanded) {
       let answerClass = "";
       if (val === NSP_LABEL) answerClass = " volume-row__answer--nsp";
       else if (val === ZERO_LABEL) answerClass = " volume-row__answer--zero";
@@ -529,6 +563,7 @@ function renderMatrix(q) {
       return;
     }
 
+    // Etat deplie (premiere ligne non repondue, ou ouverte manuellement).
     html += `
       <div class="volume-row${extraClass}">
         <div class="volume-row__head">
@@ -628,6 +663,12 @@ function attachFieldHandlers(q) {
       });
     });
     document.querySelectorAll(`.volume-row__edit`).forEach(btn => {
+      btn.addEventListener("click", () => {
+        expandedRows.add(btn.dataset.col);
+        renderQuestion(q);
+      });
+    });
+    document.querySelectorAll(`.volume-row__open`).forEach(btn => {
       btn.addEventListener("click", () => {
         expandedRows.add(btn.dataset.col);
         renderQuestion(q);
