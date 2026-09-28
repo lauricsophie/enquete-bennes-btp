@@ -511,14 +511,20 @@ function renderMatrix(q) {
     const extraClass = (isLastRow ? " volume-row--noborder" : "") + (isFullWidth ? " volume-row--full" : "");
 
     if (!isExpanded) {
-      const nspClass = val === NSP_LABEL ? " volume-row__answer--nsp" : (val === ZERO_LABEL ? " volume-row__answer--zero" : "");
+      // Resume replie sur UNE SEULE ligne (a la suite) : numero + libelle
+      // + reponse + bouton Modifier, au lieu de 2 lignes empilees.
+      let answerClass = "";
+      if (val === NSP_LABEL) answerClass = " volume-row__answer--nsp";
+      else if (val === ZERO_LABEL) answerClass = " volume-row__answer--zero";
       html += `
         <div class="volume-row volume-row--collapsed${extraClass}">
-          <div class="volume-row--collapsed__top">
-            <span class="volume-row--collapsed__left">${iconHtml}${indexBadge}<span class="volume-row__label">${escapeHtml(rowLabel)}</span></span>
+          <div class="volume-row--collapsed__inline">
+            ${iconHtml}${indexBadge}
+            <span class="volume-row__label">${escapeHtml(rowLabel)}</span>
+            <span class="volume-row--collapsed__sep">—</span>
+            <span class="volume-row__answer${answerClass}">${escapeHtml(val)}</span>
             <button type="button" class="volume-row__edit" data-col="${col}">${ICONS.edit} Modifier</button>
           </div>
-          <div class="volume-row__answer${nspClass}">${escapeHtml(val)}</div>
         </div>`;
       return;
     }
