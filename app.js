@@ -164,10 +164,29 @@ function validateExtraField(q) {
   return null;
 }
 
+// Condition generique pour l'affichage conditionnel d'une LIGNE de matrice
+// (ex: Q9 n'affiche le type de vehicule que si Q8 > 1 pour ce type).
+function rowConditionMet(sourceVal) {
+  if (sourceVal === undefined || sourceVal === null || sourceVal === "") return false;
+  if (sourceVal === "0" || sourceVal === "1") return false;
+  return true; // "2", "3", "4", "5", "Plus de 5"
+}
+
+function getVisibleRowIndices(q) {
+  return q.rows.map((_, i) => i).filter(i => {
+    if (!q.row_source_columns) return true;
+    const srcCol = q.row_source_columns[i];
+    if (!srcCol) return true;
+    return rowConditionMet(state.answers[srcCol]);
+  });
+}
+
 function validateQuestion(q) {
   if (q.type === "matrix_single") {
     if (q.required) {
-      for (const col of q.columns) {
+      const visibleIdx = getVisibleRowIndices(q);
+      for (const i of visibleIdx) {
+        const col = q.columns[i];
         if (!state.answers[col]) return "Merci de répondre pour chaque ligne du tableau.";
       }
     }
@@ -458,22 +477,29 @@ function iconSizeForVolume(v) {
   return Math.round(pxmin + (c - vmin) / (vmax - vmin) * (pxmax - pxmin));
 }
 
-// Grille CSS fiable (2 colonnes sur tablette/desktop) : le nombre de
-// lignes formant la DERNIERE rangee (1 ou 2) determine quelles lignes
-// n'ont pas de bordure basse, et si la derniere ligne (seule) doit
-// occuper toute la largeur.
+// Bloc unifie (grille CSS) avec lignes eventuellement filtrees par une
+// condition sur une autre question (ex: Q9 n'affiche un type de vehicule
+// que si sa quantite en Q8 est superieure a 1). Le principe de repli
+// apres reponse reste identique.
 function renderMatrix(q) {
   if (expandedRowsQuestionId !== q.id) {
     expandedRows = new Set();
     expandedRowsQuestionId = q.id;
   }
 
-  const totalRows = q.rows.length;
+  const rowIndices = getVisibleRowIndices(q);
+
+  if (rowIndices.length === 0) {
+    return `<p class="question-helper" style="margin-top:0;">Aucune ligne à afficher (condition non remplie pour l'instant).</p>`;
+  }
+
+  const totalRows = rowIndices.length;
   const lastRowSize = totalRows % 2 === 0 ? 2 : 1;
   const lastRowStart = totalRows - lastRowSize;
 
   let html = `<div class="volume-matrix">`;
-  q.rows.forEach((rowLabel, i) => {
+  rowIndices.forEach((i, displayIdx) => {
+    const rowLabel = q.rows[i];
     const col = q.columns[i];
     const val = state.answers[col];
     const isAnswered = !!val;
@@ -483,10 +509,10 @@ function renderMatrix(q) {
       ? `<span class="volume-row__icon" style="width:${iconSizeForVolume(volume)}px;height:${iconSizeForVolume(volume)}px;">${ICONS.benne}</span>`
       : "";
     const indexBadge = volume === null
-      ? `<span class="volume-row__index">${i + 1}</span>`
+      ? `<span class="volume-row__index">${displayIdx + 1}</span>`
       : "";
-    const isLastRow = i >= lastRowStart;
-    const isFullWidth = lastRowSize === 1 && i === lastRowStart;
+    const isLastRow = displayIdx >= lastRowStart;
+    const isFullWidth = lastRowSize === 1 && displayIdx === lastRowStart;
     const extraClass = (isLastRow ? " volume-row--noborder" : "") + (isFullWidth ? " volume-row--full" : "");
 
     if (!isExpanded) {
@@ -689,7 +715,9 @@ function renderRecap() {
   visible.forEach(q => {
     let display = "";
     if (q.type === "matrix_single") {
-      display = q.rows.map((rowLabel, i) => `${rowLabel} : ${state.answers[q.columns[i]] || "—"}`).join("<br>");
+      const rowIndices = getVisibleRowIndices(q);
+      display = rowIndices.map(i => `${q.rows[i]} : ${state.answers[q.columns[i]] || "—"}`).join("<br>");
+      if (!display) display = "—";
     } else if (q.type === "matrix_number") {
       if (q.allow_na && state.answers[q.na_column] === true) {
         display = q.na_label || "Ne souhaite pas répondre";
