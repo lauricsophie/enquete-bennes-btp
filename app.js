@@ -198,11 +198,19 @@ function validateQuestion(q) {
   if (q.type === "matrix_number") {
     const naChecked = q.allow_na && state.answers[q.na_column] === true;
     if (naChecked) return null;
+    const visibleIdx = getVisibleRowIndices(q);
+    if (visibleIdx.length === 0) return null;
     if (q.required) {
-      const hasAtLeastOne = q.columns.some(col => state.answers[col] !== undefined && String(state.answers[col]).trim() !== "");
-      if (!hasAtLeastOne) return "Merci de renseigner au moins une valeur, ou de cocher \"Ne souhaite pas répondre\".";
+      for (const i of visibleIdx) {
+        const col = q.columns[i];
+        const v = state.answers[col];
+        if (v === undefined || String(v).trim() === "") {
+          return "Merci de renseigner un kilométrage pour chaque véhicule affiché, ou de cocher \"Ne souhaite pas répondre\".";
+        }
+      }
     }
-    for (const col of q.columns) {
+    for (const i of visibleIdx) {
+      const col = q.columns[i];
       const v = state.answers[col];
       if (v !== undefined && String(v).trim() !== "" && !/^\d+$/.test(String(v).trim())) {
         return "Merci de saisir uniquement des chiffres, sans espace ni symbole.";
@@ -479,17 +487,15 @@ function iconSizeForVolume(v) {
   return Math.round(pxmin + (c - vmin) / (vmax - vmin) * (pxmax - pxmin));
 }
 
-// Revelation progressive : parmi les lignes NON repondues, seule la
-// premiere (dans l'ordre) est depliee par defaut avec ses chips. Les
-// suivantes affichent un etat "en attente" compact, et peuvent etre
-// ouvertes manuellement via un bouton "Répondre" si on veut sauter l'ordre.
-// Cela evite d'afficher trop d'options simultanement (ex: Q9 avec 3
-// types de vehicules x 6 options = 18 boutons d'un coup).
-function renderMatrix(q) {
-  if (expandedRowsQuestionId !== q.id) {
+function ensureExpandedRowsFor(qid) {
+  if (expandedRowsQuestionId !== qid) {
     expandedRows = new Set();
-    expandedRowsQuestionId = q.id;
+    expandedRowsQuestionId = qid;
   }
+}
+
+function renderMatrix(q) {
+  ensureExpandedRowsFor(q.id);
 
   const rowIndices = getVisibleRowIndices(q);
 
@@ -585,16 +591,102 @@ function renderMatrix(q) {
   return html;
 }
 
+// Matrice numerique (ex: Q10 kilometres annuels) avec la meme revelation
+// progressive que renderMatrix : les lignes sont filtrees par
+// row_source_columns (ex: Q8), seule la premiere ligne eligible non
+// repondue s'ouvre automatiquement, les autres restent compactes en
+// attente et peuvent etre ouvertes via "Répondre".
 function renderMatrixNumber(q) {
+  ensureExpandedRowsFor(q.id);
+
   const naChecked = q.allow_na && state.answers[q.na_column] === true;
-  let html = `<div class="matrix-number">`;
-  q.rows.forEach((rowLabel, i) => {
+  const rowIndices = getVisibleRowIndices(q);
+
+  if (rowIndices.length === 0) {
+    return `<p class="question-helper" style="margin-top:0;">Aucune ligne à afficher (aucun véhicule concerné pour l'instant).</p>`;
+  }
+
+  let firstUnansweredDisplayIdx = -1;
+  if (!naChecked) {
+    rowIndices.forEach((i, displayIdx) => {
+      const col = q.columns[i];
+      const v = state.answers[col];
+      if (firstUnansweredDisplayIdx === -1 && (v === undefined || String(v).trim() === "")) {
+        firstUnansweredDisplayIdx = displayIdx;
+      }
+    });
+  }
+
+  let html = `<div class="volume-matrix">`;
+  const totalRows = rowIndices.length;
+  const lastRowSize = totalRows % 2 === 0 ? 2 : 1;
+  const lastRowStart = totalRows - lastRowSize;
+
+  rowIndices.forEach((i, displayIdx) => {
+    const rowLabel = q.rows[i];
     const col = q.columns[i];
-    const val = naChecked ? "" : (state.answers[col] || "");
+    const rawVal = state.answers[col];
+    const isAnswered = !naChecked && rawVal !== undefined && String(rawVal).trim() !== "";
+    const manuallyOpened = expandedRows.has(col);
+    const isAutoFirst = displayIdx === firstUnansweredDisplayIdx;
+    const isPending = !naChecked && !isAnswered && !isAutoFirst && !manuallyOpened;
+    const isExpanded = naChecked ? false : (manuallyOpened || (!isAnswered && isAutoFirst));
+
+    const isLastRow = displayIdx >= lastRowStart;
+    const isFullWidth = lastRowSize === 1 && displayIdx === lastRowStart;
+    const extraClass = (isLastRow ? " volume-row--noborder" : "") + (isFullWidth ? " volume-row--full" : "");
+    const indexBadge = `<span class="volume-row__index">${displayIdx + 1}</span>`;
+
+    if (naChecked) {
+      html += `
+        <div class="volume-row volume-row--collapsed${extraClass}">
+          <div class="volume-row--collapsed__inline">
+            ${indexBadge}
+            <span class="volume-row__label">${escapeHtml(rowLabel)}</span>
+            <span class="volume-row--collapsed__sep">—</span>
+            <span class="volume-row__answer volume-row__answer--nsp">${escapeHtml(q.na_label || NSP_LABEL)}</span>
+          </div>
+        </div>`;
+      return;
+    }
+
+    if (isPending) {
+      html += `
+        <div class="volume-row volume-row--pending${extraClass}">
+          <div class="volume-row--collapsed__inline">
+            ${indexBadge}
+            <span class="volume-row__label volume-row__label--pending">${escapeHtml(rowLabel)}</span>
+            <button type="button" class="volume-row__open" data-col="${col}">Répondre ${ICONS.chevron}</button>
+          </div>
+        </div>`;
+      return;
+    }
+
+    if (isAnswered && !isExpanded) {
+      html += `
+        <div class="volume-row volume-row--collapsed${extraClass}">
+          <div class="volume-row--collapsed__inline">
+            ${indexBadge}
+            <span class="volume-row__label">${escapeHtml(rowLabel)}</span>
+            <span class="volume-row--collapsed__sep">—</span>
+            <span class="volume-row__answer">${escapeHtml(String(rawVal))} km/an</span>
+            <button type="button" class="volume-row__edit" data-col="${col}">${ICONS.edit} Modifier</button>
+          </div>
+        </div>`;
+      return;
+    }
+
+    const val = rawVal || "";
     html += `
-      <div class="matrix-number-row">
-        <label class="matrix-number-row__label" for="${col}">${escapeHtml(rowLabel)}</label>
-        <input class="field-input matrix-number-row__input" id="${col}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="km" value="${escapeHtml(val)}" ${naChecked ? "disabled" : ""}>
+      <div class="volume-row${extraClass}">
+        <div class="volume-row__head">
+          ${indexBadge}
+          <span class="volume-row__label">${escapeHtml(rowLabel)}</span>
+        </div>
+        <div class="matrix-number-row matrix-number-row--inline">
+          <input class="field-input matrix-number-row__input" id="${col}" data-col="${col}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="km/an" value="${escapeHtml(val)}">
+          <span class="matrix-number-row__unit">km/an</span>
+        </div>
       </div>`;
   });
   html += `</div>`;
@@ -677,9 +769,26 @@ function attachFieldHandlers(q) {
   }
 
   if (q.type === "matrix_number") {
-    q.columns.forEach(col => {
-      const input = document.getElementById(col);
-      if (input) input.addEventListener("input", () => { state.answers[col] = input.value; });
+    document.querySelectorAll(`.matrix-number-row__input[data-col]`).forEach(input => {
+      input.addEventListener("input", () => { state.answers[input.dataset.col] = input.value; });
+      input.addEventListener("blur", () => {
+        if (state.answers[input.dataset.col] && String(state.answers[input.dataset.col]).trim() !== "") {
+          expandedRows.delete(input.dataset.col);
+          renderQuestion(q);
+        }
+      });
+    });
+    document.querySelectorAll(`.volume-row__edit`).forEach(btn => {
+      btn.addEventListener("click", () => {
+        expandedRows.add(btn.dataset.col);
+        renderQuestion(q);
+      });
+    });
+    document.querySelectorAll(`.volume-row__open`).forEach(btn => {
+      btn.addEventListener("click", () => {
+        expandedRows.add(btn.dataset.col);
+        renderQuestion(q);
+      });
     });
     if (q.allow_na) {
       const naInput = document.getElementById(q.na_column);
@@ -766,7 +875,9 @@ function renderRecap() {
       if (q.allow_na && state.answers[q.na_column] === true) {
         display = q.na_label || "Ne souhaite pas répondre";
       } else {
-        display = q.rows.map((rowLabel, i) => `${rowLabel} : ${state.answers[q.columns[i]] || "—"} km`).join("<br>");
+        const visibleIdx = getVisibleRowIndices(q);
+        display = visibleIdx.map(i => `${q.rows[i]} : ${state.answers[q.columns[i]] || "—"} km/an`).join("<br>");
+        if (!display) display = "—";
       }
     } else {
       const col = q.columns[0];
