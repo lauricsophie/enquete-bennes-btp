@@ -33,6 +33,7 @@ const ILLUSTRATIONS = {
 };
 
 const NSP_LABEL = "Ne souhaite pas répondre";
+const ZERO_LABEL = "0";
 
 // ==================== STATE ====================
 let QUESTIONS = null;
@@ -164,13 +165,10 @@ function validateExtraField(q) {
   return null;
 }
 
-// Condition generique pour l'affichage conditionnel d'une LIGNE de matrice
-// (ex: Q9 n'affiche le type de vehicule que si Q8 >= 1 pour ce type,
-// c'est-a-dire tout sauf "0", vide ou non renseigne).
 function rowConditionMet(sourceVal) {
   if (sourceVal === undefined || sourceVal === null || sourceVal === "") return false;
   if (sourceVal === "0") return false;
-  return true; // "1", "2", "3", "4", "5", "Plus de 5"
+  return true;
 }
 
 function getVisibleRowIndices(q) {
@@ -513,7 +511,7 @@ function renderMatrix(q) {
     const extraClass = (isLastRow ? " volume-row--noborder" : "") + (isFullWidth ? " volume-row--full" : "");
 
     if (!isExpanded) {
-      const nspClass = val === NSP_LABEL ? " volume-row__answer--nsp" : "";
+      const nspClass = val === NSP_LABEL ? " volume-row__answer--nsp" : (val === ZERO_LABEL ? " volume-row__answer--zero" : "");
       html += `
         <div class="volume-row volume-row--collapsed${extraClass}">
           <div class="volume-row--collapsed__top">
@@ -534,7 +532,9 @@ function renderMatrix(q) {
         <div class="volume-row__chips">`;
     q.options.forEach(opt => {
       const sel = val === opt ? "selected" : "";
-      const nspClass = opt === NSP_LABEL ? " volume-chip--nsp" : "";
+      let nspClass = "";
+      if (opt === NSP_LABEL) nspClass = " volume-chip--nsp";
+      else if (opt === ZERO_LABEL && sel) nspClass = " volume-chip--zero";
       html += `<label class="volume-chip${nspClass} ${sel}" data-col="${col}" data-value="${escapeHtml(opt)}">
             <input type="radio" name="${col}" value="${escapeHtml(opt)}" ${val === opt ? "checked" : ""}>${escapeHtml(opt)}</label>`;
     });
