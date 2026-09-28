@@ -485,9 +485,7 @@ select.field-input {
   font-style: normal;
 }
 
-/* Ligne repliee : tout sur UNE SEULE ligne, a la suite (numero, libelle,
-   separateur, reponse, bouton Modifier), plutot qu'empile sur 2 lignes.
-   Wrap autorise sur tres petit ecran pour eviter le debordement. */
+/* ===== Etat replie (deja repondu) : une seule ligne, a la suite ===== */
 .volume-row--collapsed {
   padding: 8px 10px;
   background: var(--color-eco-light);
@@ -554,6 +552,38 @@ select.field-input {
 }
 .volume-row__edit svg { width: 14px; height: 14px; flex-shrink: 0; }
 .volume-row__edit:hover { color: var(--color-primary); text-decoration: underline; }
+
+/* ===== Etat "en attente" (revelation progressive) : lignes pas encore
+   repondues et pas encore la premiere dans l'ordre. Compact, neutre,
+   avec un bouton "Repondre" pour l'ouvrir manuellement si besoin. ===== */
+.volume-row--pending {
+  padding: 8px 10px;
+  background: var(--color-surface);
+  min-height: unset;
+  opacity: 0.85;
+}
+.volume-row__label--pending {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+.volume-row__open {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--color-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 6px 8px;
+  min-height: 32px;
+  white-space: nowrap;
+}
+.volume-row__open svg { width: 14px; height: 14px; flex-shrink: 0; }
+.volume-row__open:hover { text-decoration: underline; }
 
 /* ===== Matrix number (Q10 : saisie libre par type de véhicule) ===== */
 .matrix-number {
