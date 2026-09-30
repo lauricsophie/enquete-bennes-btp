@@ -634,6 +634,35 @@ select.field-input {
   flex-shrink: 0;
 }
 
+/* ===== Revelation sequentielle (ex: Q14 volumes de bennes) : un seul
+   element affiche a la fois, avec apparition en fondu et compteur de
+   progression, plutot qu'une liste compacte listant tous les elements
+   restants. Reduit la charge visuelle et le risque d'abandon. ===== */
+.sequential-counter {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 10px;
+}
+.volume-matrix--sequential {
+  display: block !important;
+}
+.volume-matrix--sequential .volume-row {
+  border-left: 3px solid var(--color-sky-light);
+}
+.volume-matrix--sequential .volume-row:not(:last-child) {
+  border-bottom: 1px solid var(--color-border);
+}
+@keyframes volumeRowFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.volume-row--fade-in {
+  animation: volumeRowFadeIn 0.35s ease;
+}
+
 /* ===== Slider (ex: Q21 - part d'activite en %) avec graduations ===== */
 .slider-field {
   padding: 8px 4px 4px;
@@ -679,8 +708,6 @@ select.field-input {
   border: 3px solid var(--color-primary);
   cursor: pointer;
 }
-/* Graduations superposees sous la piste : traits mineurs courts et
-   traits majeurs plus longs, positionnes en % le long de la largeur. */
 .slider-field__ticks {
   position: absolute;
   top: 12px;
