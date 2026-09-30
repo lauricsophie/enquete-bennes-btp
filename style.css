@@ -634,10 +634,10 @@ select.field-input {
   flex-shrink: 0;
 }
 
-/* ===== Revelation sequentielle (ex: Q14 volumes de bennes) : un seul
-   element affiche a la fois, avec apparition en fondu et compteur de
-   progression, plutot qu'une liste compacte listant tous les elements
-   restants. Reduit la charge visuelle et le risque d'abandon. ===== */
+/* ===== Revelation sequentielle (ex: Q14 volumes de bennes, 9 options) :
+   un seul element affiche a la fois, avec apparition en fondu et
+   compteur de progression. Reserve aux questions a tres nombreuses
+   options (via reveal_mode: "sequential" dans questions.json). ===== */
 .sequential-counter {
   font-size: 0.78rem;
   font-weight: 700;
