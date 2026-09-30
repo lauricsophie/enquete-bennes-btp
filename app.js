@@ -481,22 +481,54 @@ function renderText(q, type) {
   return `<input class="field-input" id="${current}" type="${inputType}"${inputmode} value="${escapeHtml(val)}" placeholder="${type === "email" ? "nom@entreprise.fr" : ""}">`;
 }
 
+// Curseur (ex: Q21 - part d'activite en %) avec graduations : marques
+// majeures (avec libelle) tous les q.tick_step, marques mineures tous
+// les q.minor_tick_step, pour donner des reperes visuels avant de
+// deplacer le curseur plutot qu'un simple trait nu entre min et max.
 function renderSlider(q) {
   const current = q.columns[0];
   const min = q.min !== undefined ? q.min : 0;
   const max = q.max !== undefined ? q.max : 100;
   const step = q.step !== undefined ? q.step : 1;
+  const tickStep = q.tick_step || Math.round((max - min) / 4);
+  const minorTickStep = q.minor_tick_step || Math.round((max - min) / 10);
   const stored = state.answers[current];
   const hasValue = stored !== undefined && stored !== null && String(stored).trim() !== "";
   const displayVal = hasValue ? stored : Math.round((min + max) / 2);
+
+  let minorTicksHtml = "";
+  if (minorTickStep > 0) {
+    for (let t = min; t <= max; t += minorTickStep) {
+      if (t % tickStep === 0) continue;
+      const pct = ((t - min) / (max - min)) * 100;
+      minorTicksHtml += `<span class="slider-field__tick slider-field__tick--minor" style="left:${pct}%;"></span>`;
+    }
+  }
+
+  let majorTicksHtml = "";
+  if (tickStep > 0) {
+    for (let t = min; t <= max; t += tickStep) {
+      const pct = ((t - min) / (max - min)) * 100;
+      majorTicksHtml += `<span class="slider-field__tick slider-field__tick--major" style="left:${pct}%;"></span>`;
+    }
+  }
+
+  let majorLabelsHtml = "";
+  if (tickStep > 0) {
+    for (let t = min; t <= max; t += tickStep) {
+      const pct = ((t - min) / (max - min)) * 100;
+      majorLabelsHtml += `<span class="slider-field__tick-label" style="left:${pct}%;">${t}${q.unit || ""}</span>`;
+    }
+  }
+
   return `
     <div class="slider-field">
       <div class="slider-field__value" id="${current}_value">${hasValue ? displayVal : "—"}${q.unit || ""}</div>
-      <input class="slider-field__input" id="${current}" type="range" min="${min}" max="${max}" step="${step}" value="${displayVal}" data-touched="${hasValue ? "true" : "false"}">
-      <div class="slider-field__scale">
-        <span>${min}${q.unit || ""}</span>
-        <span>${max}${q.unit || ""}</span>
+      <div class="slider-field__track-wrap">
+        <input class="slider-field__input" id="${current}" type="range" min="${min}" max="${max}" step="${step}" value="${displayVal}" data-touched="${hasValue ? "true" : "false"}">
+        <div class="slider-field__ticks">${minorTicksHtml}${majorTicksHtml}</div>
       </div>
+      <div class="slider-field__tick-labels">${majorLabelsHtml}</div>
     </div>`;
 }
 
