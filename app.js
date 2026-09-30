@@ -83,9 +83,21 @@ function loadFromStorage() {
 function clearStorage() { localStorage.removeItem(STORAGE_KEY); }
 
 // ==================== LOGIQUE CONDITIONNELLE ====================
+// Supporte deux formes de visible_if :
+// - { question, equals } : egalite stricte sur une valeur unique (radio,
+//   dropdown...).
+// - { question, any_of } : la reponse (tableau, ex: checkbox comme Q19)
+//   doit contenir au moins une des valeurs listees. Utilise par ex. pour
+//   la question VALOBAT conditionnee aux flux dechets selectionnes.
 function isVisible(q) {
   if (!q.visible_if) return true;
-  return state.answers[q.visible_if.question] === q.visible_if.equals;
+  const cond = q.visible_if;
+  const sourceVal = state.answers[cond.question];
+  if (cond.any_of) {
+    const arr = Array.isArray(sourceVal) ? sourceVal : [];
+    return cond.any_of.some(opt => arr.includes(opt));
+  }
+  return sourceVal === cond.equals;
 }
 
 function getVisibleQuestions() {
@@ -574,7 +586,6 @@ function renderMatrix(q) {
       firstUnansweredDisplayIdx = displayIdx;
     }
   });
-  const answeredCount = firstUnansweredDisplayIdx === -1 ? totalRows : firstUnansweredDisplayIdx;
   const currentPosition = firstUnansweredDisplayIdx === -1 ? totalRows : firstUnansweredDisplayIdx + 1;
 
   let counterHtml = `<div class="sequential-counter">Élément ${currentPosition} sur ${totalRows}</div>`;
@@ -589,8 +600,6 @@ function renderMatrix(q) {
     const isAutoFirst = displayIdx === firstUnansweredDisplayIdx;
     const isExpanded = manuallyOpened || (!isAnswered && isAutoFirst) || (isAnswered && manuallyOpened);
 
-    // Element pas encore atteint (ni repondu, ni le prochain a repondre,
-    // ni ouvert manuellement) : on ne le rend pas du tout.
     if (!isAnswered && !isAutoFirst && !manuallyOpened) {
       return;
     }
@@ -603,7 +612,6 @@ function renderMatrix(q) {
       ? `<span class="volume-row__index">${displayIdx + 1}</span>`
       : "";
 
-    // Etat replie apres reponse (deja repondu, pas en cours d'edition).
     if (isAnswered && !isExpanded) {
       let answerClass = "";
       if (val === NSP_LABEL) answerClass = " volume-row__answer--nsp";
@@ -621,7 +629,6 @@ function renderMatrix(q) {
       return;
     }
 
-    // Etat deplie (element courant a repondre, ou reouvert via Modifier).
     html += `
       <div class="volume-row volume-row--fade-in">
         <div class="volume-row__head">
