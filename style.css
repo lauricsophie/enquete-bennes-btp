@@ -634,7 +634,7 @@ select.field-input {
   flex-shrink: 0;
 }
 
-/* ===== Slider (ex: Q21 - part d'activite en %) ===== */
+/* ===== Slider (ex: Q21 - part d'activite en %) avec graduations ===== */
 .slider-field {
   padding: 8px 4px 4px;
 }
@@ -643,7 +643,11 @@ select.field-input {
   font-size: 2rem;
   font-weight: 800;
   color: var(--color-primary);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+}
+.slider-field__track-wrap {
+  position: relative;
+  padding-bottom: 14px;
 }
 .slider-field__input {
   width: 100%;
@@ -654,6 +658,9 @@ select.field-input {
   outline: none;
   cursor: pointer;
   accent-color: var(--color-accent-btp);
+  position: relative;
+  z-index: 2;
+  margin: 0;
 }
 .slider-field__input::-webkit-slider-thumb {
   appearance: none;
@@ -672,13 +679,49 @@ select.field-input {
   border: 3px solid var(--color-primary);
   cursor: pointer;
 }
-.slider-field__scale {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
+/* Graduations superposees sous la piste : traits mineurs courts et
+   traits majeurs plus longs, positionnes en % le long de la largeur. */
+.slider-field__ticks {
+  position: absolute;
+  top: 12px;
+  left: 13px;
+  right: 13px;
+  height: 8px;
+  pointer-events: none;
+}
+.slider-field__tick {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  transform: translateX(-1px);
+  background: var(--color-border);
+}
+.slider-field__tick--minor {
+  height: 5px;
+}
+.slider-field__tick--major {
+  height: 8px;
+  width: 2px;
+  background: var(--color-primary-light);
+}
+.slider-field__tick-labels {
+  position: relative;
+  height: 16px;
+  margin-top: 2px;
+}
+.slider-field__tick-label {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
   font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.slider-field__tick-label:first-child {
+  transform: translateX(0);
+}
+.slider-field__tick-label:last-child {
+  transform: translateX(-100%);
 }
 
 /* ===== Error messages ===== */
