@@ -481,10 +481,6 @@ function renderText(q, type) {
   return `<input class="field-input" id="${current}" type="${inputType}"${inputmode} value="${escapeHtml(val)}" placeholder="${type === "email" ? "nom@entreprise.fr" : ""}">`;
 }
 
-// Curseur (ex: Q21 - part d'activite en %) avec graduations : marques
-// majeures (avec libelle) tous les q.tick_step, marques mineures tous
-// les q.minor_tick_step, pour donner des reperes visuels avant de
-// deplacer le curseur plutot qu'un simple trait nu entre min et max.
 function renderSlider(q) {
   const current = q.columns[0];
   const min = q.min !== undefined ? q.min : 0;
@@ -555,6 +551,12 @@ function ensureExpandedRowsFor(qid) {
   }
 }
 
+// Revelation strictement sequentielle : un seul element visible a la
+// fois (le premier non repondu), avec une animation d'apparition en
+// fondu. Les elements pas encore atteints ne sont pas rendus du tout
+// (contrairement a l'ancienne version qui les listait en "Repondre"),
+// pour eviter l'effet de liste longue qui peut decourager. Un compteur
+// "Element X sur N" indique la progression sans tout devoiler d'un coup.
 function renderMatrix(q) {
   ensureExpandedRowsFor(q.id);
 
@@ -565,19 +567,19 @@ function renderMatrix(q) {
   }
 
   const totalRows = rowIndices.length;
-  const lastRowSize = totalRows % 2 === 0 ? 2 : 1;
-  const lastRowStart = totalRows - lastRowSize;
 
-  // Premiere ligne non repondue (dans l'ordre d'affichage) : c'est la
-  // seule a s'ouvrir automatiquement si rien n'est encore renseigne.
   let firstUnansweredDisplayIdx = -1;
   rowIndices.forEach((i, displayIdx) => {
     if (firstUnansweredDisplayIdx === -1 && !state.answers[q.columns[i]]) {
       firstUnansweredDisplayIdx = displayIdx;
     }
   });
+  const answeredCount = firstUnansweredDisplayIdx === -1 ? totalRows : firstUnansweredDisplayIdx;
+  const currentPosition = firstUnansweredDisplayIdx === -1 ? totalRows : firstUnansweredDisplayIdx + 1;
 
-  let html = `<div class="volume-matrix">`;
+  let counterHtml = `<div class="sequential-counter">Élément ${currentPosition} sur ${totalRows}</div>`;
+
+  let html = `<div class="volume-matrix volume-matrix--sequential">`;
   rowIndices.forEach((i, displayIdx) => {
     const rowLabel = q.rows[i];
     const col = q.columns[i];
@@ -585,8 +587,13 @@ function renderMatrix(q) {
     const isAnswered = !!val;
     const manuallyOpened = expandedRows.has(col);
     const isAutoFirst = displayIdx === firstUnansweredDisplayIdx;
-    const isExpanded = manuallyOpened || (!isAnswered && isAutoFirst) || isAnswered && manuallyOpened;
-    const isPending = !isAnswered && !isAutoFirst && !manuallyOpened;
+    const isExpanded = manuallyOpened || (!isAnswered && isAutoFirst) || (isAnswered && manuallyOpened);
+
+    // Element pas encore atteint (ni repondu, ni le prochain a repondre,
+    // ni ouvert manuellement) : on ne le rend pas du tout.
+    if (!isAnswered && !isAutoFirst && !manuallyOpened) {
+      return;
+    }
 
     const volume = extractVolume(rowLabel);
     const iconHtml = volume !== null
@@ -595,22 +602,6 @@ function renderMatrix(q) {
     const indexBadge = volume === null
       ? `<span class="volume-row__index">${displayIdx + 1}</span>`
       : "";
-    const isLastRow = displayIdx >= lastRowStart;
-    const isFullWidth = lastRowSize === 1 && displayIdx === lastRowStart;
-    const extraClass = (isLastRow ? " volume-row--noborder" : "") + (isFullWidth ? " volume-row--full" : "");
-
-    // Etat "en attente" : compact, sans chips, ouvrable manuellement.
-    if (isPending) {
-      html += `
-        <div class="volume-row volume-row--pending${extraClass}">
-          <div class="volume-row--collapsed__inline">
-            ${iconHtml}${indexBadge}
-            <span class="volume-row__label volume-row__label--pending">${escapeHtml(rowLabel)}</span>
-            <button type="button" class="volume-row__open" data-col="${col}">Répondre ${ICONS.chevron}</button>
-          </div>
-        </div>`;
-      return;
-    }
 
     // Etat replie apres reponse (deja repondu, pas en cours d'edition).
     if (isAnswered && !isExpanded) {
@@ -618,7 +609,7 @@ function renderMatrix(q) {
       if (val === NSP_LABEL) answerClass = " volume-row__answer--nsp";
       else if (val === ZERO_LABEL) answerClass = " volume-row__answer--zero";
       html += `
-        <div class="volume-row volume-row--collapsed${extraClass}">
+        <div class="volume-row volume-row--collapsed volume-row--fade-in">
           <div class="volume-row--collapsed__inline">
             ${iconHtml}${indexBadge}
             <span class="volume-row__label">${escapeHtml(rowLabel)}</span>
@@ -630,9 +621,9 @@ function renderMatrix(q) {
       return;
     }
 
-    // Etat deplie (premiere ligne non repondue, ou ouverte manuellement).
+    // Etat deplie (element courant a repondre, ou reouvert via Modifier).
     html += `
-      <div class="volume-row${extraClass}">
+      <div class="volume-row volume-row--fade-in">
         <div class="volume-row__head">
           ${iconHtml}${indexBadge}
           <span class="volume-row__label">${escapeHtml(rowLabel)}</span>
@@ -649,7 +640,7 @@ function renderMatrix(q) {
     html += `</div></div>`;
   });
   html += `</div>`;
-  return html;
+  return counterHtml + html;
 }
 
 // Matrice numerique (ex: Q10 kilometres annuels) avec la meme revelation
