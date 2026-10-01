@@ -585,7 +585,7 @@ select.field-input {
 .volume-row__open svg { width: 14px; height: 14px; flex-shrink: 0; }
 .volume-row__open:hover { text-decoration: underline; }
 
-/* ===== Matrix number (Q10 : kilometres/an, revelation progressive) ===== */
+/* ===== Matrix number (Q10 : kilometres/an) ===== */
 .matrix-number {
   display: flex;
   flex-direction: column;
@@ -634,10 +634,25 @@ select.field-input {
   flex-shrink: 0;
 }
 
+/* Force une seule colonne pleine largeur pour Q10 (layout: single_col) :
+   les valeurs numeriques + unite "km/an" + bouton Modifier sont plus
+   larges que les chips de Q8/Q9 et se faisaient tronquer (ellipsis)
+   dans la grille a 2 colonnes partagee par les autres matrices. */
+.volume-matrix--single-col {
+  display: block !important;
+}
+.volume-matrix--single-col .volume-row {
+  border-right: none !important;
+}
+.volume-matrix--single-col .volume-row--collapsed .volume-row__answer {
+  overflow: visible;
+  text-overflow: unset;
+  white-space: nowrap;
+}
+
 /* ===== Revelation sequentielle (ex: Q14 volumes de bennes, 9 options) :
    un seul element affiche a la fois, avec apparition en fondu et
-   compteur de progression. Reserve aux questions a tres nombreuses
-   options (via reveal_mode: "sequential" dans questions.json). ===== */
+   compteur de progression. ===== */
 .sequential-counter {
   font-size: 0.78rem;
   font-weight: 700;
