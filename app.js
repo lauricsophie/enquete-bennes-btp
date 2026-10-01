@@ -557,13 +557,6 @@ function ensureExpandedRowsFor(qid) {
   }
 }
 
-// Deux modes de revelation pour les matrices a choix unique :
-// - "sequential" (ex: Q14, 9 volumes) : un seul element visible a la
-//   fois, apparition en fondu, compteur "Element X sur N", aucun saut
-//   en avance possible.
-// - "progressive" (par defaut, ex: Q8, Q9, Q17, Q25, coherent avec
-//   Q10) : le premier element non repondu est deplie automatiquement,
-//   les autres restent visibles en compact avec un bouton "Repondre".
 function renderMatrix(q) {
   ensureExpandedRowsFor(q.id);
 
@@ -743,7 +736,8 @@ function renderMatrixNumber(q) {
     });
   }
 
-  let html = `<div class="volume-matrix">`;
+  const matrixClass = q.layout === "single_col" ? "volume-matrix volume-matrix--single-col" : "volume-matrix";
+  let html = `<div class="${matrixClass}">`;
   const totalRows = rowIndices.length;
   const lastRowSize = totalRows % 2 === 0 ? 2 : 1;
   const lastRowStart = totalRows - lastRowSize;
@@ -759,7 +753,7 @@ function renderMatrixNumber(q) {
     const isExpanded = naChecked ? false : (manuallyOpened || (!isAnswered && isAutoFirst));
 
     const isLastRow = displayIdx >= lastRowStart;
-    const isFullWidth = lastRowSize === 1 && displayIdx === lastRowStart;
+    const isFullWidth = q.layout === "single_col" ? true : (lastRowSize === 1 && displayIdx === lastRowStart);
     const extraClass = (isLastRow ? " volume-row--noborder" : "") + (isFullWidth ? " volume-row--full" : "");
     const indexBadge = `<span class="volume-row__index">${displayIdx + 1}</span>`;
 
