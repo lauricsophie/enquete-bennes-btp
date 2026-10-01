@@ -1,5 +1,5 @@
 // ==================== CONFIGURATION ====================
-const API_URL = "REMPLACER_PAR_URL_APPS_SCRIPT_/exec"; // URL du Web App Google Apps Script (Code.gs)
+const API_URL = https://script.google.com/macros/s/AKfycbypPZQISiANFOpsPUp348rKVv-ubzpDjGbwqwjDTnG61M1IsduqENSN55YtLfCkwkhE9g/exec
 const STORAGE_KEY = "enquete_bennes_btp_v1";
 
 // ==================== ICONES SVG (inline, monochromes) ====================
