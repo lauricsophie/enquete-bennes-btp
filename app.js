@@ -1,5 +1,5 @@
 // ==================== CONFIGURATION ====================
-const API_URL = https://script.google.com/macros/s/AKfycbypPZQISiANFOpsPUp348rKVv-ubzpDjGbwqwjDTnG61M1IsduqENSN55YtLfCkwkhE9g/exec
+const API_URL = "https://script.google.com/macros/s/AKfycbz9Uttnk8Me1BvGyBOPWTlwgt72R3GDprnKL4XZnakFCS_5FyO9o_s7v8_zIPN5x3JrVw/exec"; // URL du Web App Google Apps Script (Code.gs)
 const STORAGE_KEY = "enquete_bennes_btp_v1";
 
 // ==================== ICONES SVG (inline, monochromes) ====================
@@ -83,12 +83,6 @@ function loadFromStorage() {
 function clearStorage() { localStorage.removeItem(STORAGE_KEY); }
 
 // ==================== LOGIQUE CONDITIONNELLE ====================
-// Supporte deux formes de visible_if :
-// - { question, equals } : egalite stricte sur une valeur unique (radio,
-//   dropdown...).
-// - { question, any_of } : la reponse (tableau, ex: checkbox comme Q19)
-//   doit contenir au moins une des valeurs listees. Utilise par ex. pour
-//   la question VALOBAT conditionnee aux flux dechets selectionnes.
 function isVisible(q) {
   if (!q.visible_if) return true;
   const cond = q.visible_if;
@@ -566,12 +560,10 @@ function ensureExpandedRowsFor(qid) {
 // Deux modes de revelation pour les matrices a choix unique :
 // - "sequential" (ex: Q14, 9 volumes) : un seul element visible a la
 //   fois, apparition en fondu, compteur "Element X sur N", aucun saut
-//   en avance possible. Reserve aux questions a tres nombreuses options
-//   ou le risque d'abandon est le plus fort.
-// - "progressive" (par defaut, ex: Q8, Q9, Q17, Q25 - et coherent avec
+//   en avance possible.
+// - "progressive" (par defaut, ex: Q8, Q9, Q17, Q25, coherent avec
 //   Q10) : le premier element non repondu est deplie automatiquement,
-//   les autres restent visibles en compact avec un bouton "Repondre"
-//   permettant de repondre dans le desordre.
+//   les autres restent visibles en compact avec un bouton "Repondre".
 function renderMatrix(q) {
   ensureExpandedRowsFor(q.id);
 
@@ -655,7 +647,6 @@ function renderMatrix(q) {
     return counterHtml + html;
   }
 
-  // Mode "progressive" (par defaut).
   const lastRowSize = totalRows % 2 === 0 ? 2 : 1;
   const lastRowStart = totalRows - lastRowSize;
 
